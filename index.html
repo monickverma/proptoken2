@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropToken - Flat Modern Real Estate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+          },
+        },
+      }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #111827;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .dark body {
+            background-color: #020617;
+            color: #f8fafc;
+        }
+        .flat-card {
+            border: 2px solid #e5e7eb;
+            transition: border-color 0.2s ease;
+        }
+        .dark .flat-card {
+            border-color: #1e293b;
+        }
+        .flat-card:hover {
+            border-color: #4f46e5;
+        }
+        .btn-flat {
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+        .btn-flat:active {
+            transform: scale(0.98);
+        }
+        /* Remove all soft shadows globally for flat look */
+        * {
+            box-shadow: none !important;
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "date-fns": "https://esm.sh/date-fns@^4.1.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.11.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "zod": "https://esm.sh/zod@^4.3.5",
+    "bcryptjs": "https://esm.sh/bcryptjs@^3.0.3",
+    "cors": "https://esm.sh/cors@^2.8.5",
+    "express": "https://esm.sh/express@^5.2.1",
+    "dotenv": "https://esm.sh/dotenv@^17.2.3",
+    "jsonwebtoken": "https://esm.sh/jsonwebtoken@^9.0.3"
+  }
+}
+</script>
+</head>
+<body class="antialiased dark:bg-slate-950">
+    <div id="root"></div>
+</body>
+</html>
