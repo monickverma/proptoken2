@@ -42,6 +42,9 @@ const App: React.FC = () => {
           <Route path="/pay" element={<ProtectedRoute><Pay /></ProtectedRoute>} />
           <Route path="/account" element={<ProtectedRoute><Account /></ProtectedRoute>} />
           
+          {/* ABM & Asset Intelligence Layer - Public Access */}
+          <Route path="/abm" element={<ABM />} />
+          
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
