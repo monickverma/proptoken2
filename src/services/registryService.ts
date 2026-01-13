@@ -18,6 +18,9 @@ import { runProductionOracle, ProductionOracleResult } from './productionOracleS
 import { calculateConsensus } from './consensusService';
 import crypto from 'crypto';
 
+// Enhanced fraud rules count
+const ENHANCED_FRAUD_RULES_COUNT = 18;
+
 // =====================
 // IN-MEMORY STORAGE
 // =====================
