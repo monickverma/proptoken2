@@ -1,5 +1,7 @@
 
+
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/StatCard';
 import { Wallet, Layers, LineChart, ExternalLink, MapPin, Search, Filter } from 'lucide-react';
@@ -21,11 +23,11 @@ const Dashboard: React.FC = () => {
     return DUMMY_ASSETS.filter(asset => {
       const tokensOwned = wallet.tokensByAsset[asset.id] || 0;
       if (tokensOwned === 0) return false;
-      
-      const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                            asset.location.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesSearch = asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        asset.location.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesRisk = riskFilter === 'All' || asset.risk === riskFilter;
-      
+
       return matchesSearch && matchesRisk;
     });
   }, [wallet.tokensByAsset, searchTerm, riskFilter]);
@@ -37,32 +39,37 @@ const Dashboard: React.FC = () => {
           <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Dashboard</h1>
           <p className="text-slate-400 dark:text-slate-500 font-bold uppercase text-xs tracking-widest mt-1">Portfolio Overview</p>
         </div>
-        <button className="bg-indigo-600 text-white px-10 py-4 rounded-lg font-black uppercase tracking-widest text-sm hover:bg-slate-900 dark:hover:bg-slate-800 transition-colors btn-flat">
-          Add Funds
-        </button>
+        <div className="flex gap-4">
+          <Link to="/autonomous/submit" className="bg-slate-900 text-white px-6 py-4 rounded-lg font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-colors btn-flat">
+            Register Asset
+          </Link>
+          <button className="bg-indigo-600 text-white px-10 py-4 rounded-lg font-black uppercase tracking-widest text-sm hover:bg-indigo-700 transition-colors btn-flat">
+            Add Funds
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <StatCard 
-          title="Total Invested" 
-          value={`₹${wallet.totalInvested.toLocaleString()}`} 
-          change="+12.5%" 
+        <StatCard
+          title="Total Invested"
+          value={`₹${wallet.totalInvested.toLocaleString()}`}
+          change="+12.5%"
           positive={true}
           icon={Wallet}
           colorClass="bg-indigo-600 text-white"
         />
-        <StatCard 
-          title="Owned Plot Tokens" 
-          value={`${totalTokens.toLocaleString()}`} 
-          change="+4.2%" 
+        <StatCard
+          title="Owned Plot Tokens"
+          value={`${totalTokens.toLocaleString()}`}
+          change="+4.2%"
           positive={true}
           icon={Layers}
           colorClass="bg-slate-900 dark:bg-slate-700 text-white"
         />
-        <StatCard 
-          title="Monthly Income" 
-          value={`₹${estYield.toFixed(2)}`} 
-          change="+2.4%" 
+        <StatCard
+          title="Monthly Income"
+          value={`₹${estYield.toFixed(2)}`}
+          change="+2.4%"
           positive={true}
           icon={LineChart}
           colorClass="bg-emerald-500 text-white"
@@ -72,19 +79,19 @@ const Dashboard: React.FC = () => {
       <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-100 dark:border-slate-800 overflow-hidden transition-colors">
         <div className="px-8 py-6 border-b-2 border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h2 className="font-black text-xl text-slate-900 dark:text-slate-100 tracking-tight">Plot Holdings</h2>
-          
+
           <div className="flex items-center gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search holdings..."
                 className="pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 transition-all dark:text-slate-200"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select 
+            <select
               className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-lg text-xs font-bold outline-none focus:border-indigo-600 transition-all dark:text-slate-200"
               value={riskFilter}
               onChange={(e) => setRiskFilter(e.target.value)}
