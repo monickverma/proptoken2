@@ -246,7 +246,8 @@ router.post('/submissions/:id/verify', async (req: Request, res: Response) => {
 
 // Get Oracle results
 router.get('/submissions/:id/oracle', (req: Request, res: Response) => {
-  const result = getOracleResult(req.params.id);
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const result = getOracleResult(id);
   
   if (!result) {
     return (res as any).status(404).json({
@@ -260,7 +261,8 @@ router.get('/submissions/:id/oracle', (req: Request, res: Response) => {
 
 // Get ABM results
 router.get('/submissions/:id/abm', (req: Request, res: Response) => {
-  const result = getABMResult(req.params.id);
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const result = getABMResult(id);
   
   if (!result) {
     return (res as any).status(404).json({
@@ -274,7 +276,8 @@ router.get('/submissions/:id/abm', (req: Request, res: Response) => {
 
 // Get Fraud results
 router.get('/submissions/:id/fraud', (req: Request, res: Response) => {
-  const result = getFraudResult(req.params.id);
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const result = getFraudResult(id);
   
   if (!result) {
     return (res as any).status(404).json({
@@ -288,7 +291,8 @@ router.get('/submissions/:id/fraud', (req: Request, res: Response) => {
 
 // Get Consensus results
 router.get('/submissions/:id/consensus', (req: Request, res: Response) => {
-  const result = getConsensusResult(req.params.id);
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const result = getConsensusResult(id);
   
   if (!result) {
     return (res as any).status(404).json({
