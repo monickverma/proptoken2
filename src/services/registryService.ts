@@ -549,6 +549,7 @@ export function getFullVerificationResult(submissionId: string): FullVerificatio
     submission,
     progress: progressTracking.get(submissionId)!,
     oracle: oracleResults.get(submissionId),
+    productionOracle: productionOracleResults.get(submissionId),
     abm: abmResults.get(submissionId),
     fraud: fraudResults.get(submissionId),
     consensus: consensusResults.get(submissionId),
