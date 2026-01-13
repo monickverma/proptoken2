@@ -1,4 +1,3 @@
-
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -8,6 +7,7 @@ import authRoutes from './api/authRoutes';
 import assetRoutes from './api/assetRoutes';
 import transactionRoutes from './api/transactionRoutes';
 import accountRoutes from './api/accountRoutes';
+import abmRoutes from './api/abmRoutes';
 import { requireAuth, AuthRequest } from './middleware/auth';
 import { getWalletPositions, getWalletSummary } from './services/walletService';
 
@@ -18,20 +18,27 @@ const PORT = process.env.PORT || 3000;
 
 /**
  * MIDDLEWARE SETUP
- * We use strategic casting to 'any' here because the 'express' types 
- * often collide with the global 'DOM' types in mixed environments.
  */
 const appInstance = app as any;
 
 appInstance.use(cors());
-appInstance.use(express.json());
+appInstance.use(express.json({ limit: '10mb' }));
 
 // Root API
 app.get('/', (req: Request, res: Response) => {
   (res as any).json({ 
     success: true, 
     message: 'PropToken Ledger API v1.0',
-    status: 'Operational'
+    status: 'Operational',
+    modules: {
+      auth: '/auth',
+      assets: '/assets',
+      account: '/account',
+      abm: '/abm - ABM & Asset Intelligence Layer',
+      fractional: '/fractional',
+      swap: '/swap',
+      pay: '/pay'
+    }
   });
 });
 
@@ -39,6 +46,9 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/auth', authRoutes);
 app.use('/assets', assetRoutes);
 app.use('/account', accountRoutes);
+
+// ABM & Asset Intelligence Layer Routes (STEP 1)
+app.use('/abm', abmRoutes);
 
 // Mounting specific utility routes
 app.use('/fractional', transactionRoutes);
@@ -109,4 +119,5 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 app.listen(PORT, () => {
   console.log(`PropToken Protocol active on port ${PORT}`);
+  console.log(`ABM & Asset Intelligence Layer available at /abm`);
 });
