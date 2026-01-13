@@ -123,6 +123,15 @@ router.post('/submissions', async (req: Request, res: Response) => {
           details: error.errors
         }
       });
+    } else if (error instanceof SyntaxError) {
+      // Handle JSON parsing errors
+      (res as any).status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_JSON',
+          message: 'Invalid JSON format in request body'
+        }
+      });
     } else {
       (res as any).status(500).json({
         success: false,
