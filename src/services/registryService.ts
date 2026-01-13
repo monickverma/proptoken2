@@ -161,6 +161,36 @@ export async function runVerificationPipeline(submissionId: string): Promise<{
   
   try {
     // =====================
+    // STEP 0: PRODUCTION ORACLE (Document & MCA Verification)
+    // =====================
+    addLog(progress, 'production', 'Starting Production Oracle verification...', 'info');
+    addLog(progress, 'production', 'Verifying document URLs accessibility...', 'info');
+    addLog(progress, 'production', 'Running MCA (Ministry of Corporate Affairs) verification...', 'info');
+    
+    const productionOracleResult = await runProductionOracle(submission);
+    productionOracleResults.set(submissionId, productionOracleResult);
+    
+    addLog(progress, 'production', 
+      `Document verification: ${productionOracleResult.documentScore.toFixed(0)}% accessible`,
+      productionOracleResult.documentScore >= 70 ? 'success' : 'warning'
+    );
+    addLog(progress, 'production', 
+      `MCA verification: ${productionOracleResult.mcaVerification.found ? 'Company found' : 'Company NOT found'} - Score: ${productionOracleResult.mcaScore.toFixed(0)}%`,
+      productionOracleResult.mcaScore >= 60 ? 'success' : 'warning'
+    );
+    
+    if (productionOracleResult.criticalIssues.length > 0) {
+      productionOracleResult.criticalIssues.forEach(issue => 
+        addLog(progress, 'production', `CRITICAL: ${issue}`, 'error')
+      );
+    }
+    if (productionOracleResult.warnings.length > 0) {
+      productionOracleResult.warnings.slice(0, 3).forEach(issue => 
+        addLog(progress, 'production', `WARNING: ${issue}`, 'warning')
+      );
+    }
+    
+    // =====================
     // STEP 1: ORACLE VERIFICATION
     // =====================
     submission.status = 'ORACLE_VERIFICATION';
