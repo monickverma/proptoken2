@@ -14,6 +14,7 @@ import Yield from './pages/Yield';
 import Swap from './pages/Swap';
 import Pay from './pages/Pay';
 import Account from './pages/Account';
+import ABM from './pages/ABM';
 
 // Components
 import Layout from './components/Layout';
