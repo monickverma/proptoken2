@@ -320,7 +320,8 @@ router.get('/registry', (req: Request, res: Response) => {
 
 // Get eligible asset by ID
 router.get('/registry/:id', (req: Request, res: Response) => {
-  const asset = getEligibleAsset(req.params.id);
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const asset = getEligibleAsset(id);
   
   if (!asset) {
     return (res as any).status(404).json({
@@ -345,7 +346,7 @@ const ClaimSchema = z.object({
 router.post('/registry/:id/claim', (req: Request, res: Response) => {
   try {
     const { claimantId, tokensToAcquire } = ClaimSchema.parse(req.body);
-    const assetId = req.params.id;
+    const assetId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     
     const result = claimCashFlowExposure(assetId, claimantId, tokensToAcquire);
     
