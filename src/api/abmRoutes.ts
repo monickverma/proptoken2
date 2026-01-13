@@ -196,7 +196,7 @@ router.get('/submissions/:id/full', (req: Request, res: Response) => {
 
 // Run verification pipeline
 router.post('/submissions/:id/verify', async (req: Request, res: Response) => {
-  const submissionId = req.params.id;
+  const submissionId = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
   const submission = getSubmission(submissionId);
   
   if (!submission) {
