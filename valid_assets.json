@@ -1,0 +1,117 @@
+[
+    {
+        "id": "ASSET-GGM-001",
+        "name": "DLF Cyber Hub",
+        "description": "Premium retail and office complex in DLF Cyber City.",
+        "location": {
+            "city": "Gurugram",
+            "country": "India",
+            "address": "DLF Cyber City, Phase 2, Sector 24",
+            "coordinates": {
+                "lat": 28.4949762,
+                "lng": 77.0895421
+            }
+        },
+        "tokens": {
+            "total_supply": 1000000,
+            "price_per_token": 5000,
+            "currency": "INR"
+        },
+        "yield": {
+            "expected_apr": 11.5,
+            "payment_frequency": "Quarterly"
+        }
+    },
+    {
+        "id": "ASSET-GGM-002",
+        "name": "One Horizon Center",
+        "description": "Iconic high-rise commercial tower by Hines and DLF.",
+        "location": {
+            "city": "Gurugram",
+            "country": "India",
+            "address": "Golf Course Road, Sector 43",
+            "coordinates": {
+                "lat": 28.450929,
+                "lng": 77.096463
+            }
+        },
+        "tokens": {
+            "total_supply": 2500000,
+            "price_per_token": 12000,
+            "currency": "INR"
+        },
+        "yield": {
+            "expected_apr": 12.8,
+            "payment_frequency": "Monthly"
+        }
+    },
+    {
+        "id": "ASSET-GGM-003",
+        "name": "Ambience Mall Complex",
+        "description": "One of India's largest shopping mall and office complexes.",
+        "location": {
+            "city": "Gurugram",
+            "country": "India",
+            "address": "NH-8, Ambience Island",
+            "coordinates": {
+                "lat": 28.50418,
+                "lng": 77.09679
+            }
+        },
+        "tokens": {
+            "total_supply": 5000000,
+            "price_per_token": 2500,
+            "currency": "INR"
+        },
+        "yield": {
+            "expected_apr": 10.2,
+            "payment_frequency": "Quarterly"
+        }
+    },
+    {
+        "id": "ASSET-GGM-004",
+        "name": "Worldmark Gurugram",
+        "description": "Mixed-use commercial development in Sector 65.",
+        "location": {
+            "city": "Gurugram",
+            "country": "India",
+            "address": "Maidawas Rd, Sector 65",
+            "coordinates": {
+                "lat": 28.397722,
+                "lng": 77.071944
+            }
+        },
+        "tokens": {
+            "total_supply": 1500000,
+            "price_per_token": 4500,
+            "currency": "INR"
+        },
+        "yield": {
+            "expected_apr": 11.0,
+            "payment_frequency": "Quarterly"
+        }
+    },
+    {
+        "id": "ASSET-GGM-005",
+        "name": "Candor TechSpace",
+        "description": "IT/ITES SEZ campus in Sector 48.",
+        "location": {
+            "city": "Gurugram",
+            "country": "India",
+            "address": "Sector 48, Sohna Road",
+            "coordinates": {
+                "lat": 28.42534,
+                "lng": 77.03126
+            }
+        },
+        "tokens": {
+            "total_supply": 3000000,
+            "price_per_token": 3500,
+            "currency": "INR"
+        },
+        "yield": {
+            "expected_apr": 10.5,
+            "payment_frequency": "Monthly"
+        }
+    }
+]

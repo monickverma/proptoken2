@@ -4,8 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 
 // Basic API call stub - adapt to your actual API logic
 async function createSubmission(data: any) {
-    // Use the NEW Backend URL (Port 3000)
-    const response = await fetch('http://localhost:3000/submissions', {
+    // Use the NEW Backend URL (Port 3001)
+    const response = await fetch('http://localhost:3001/submissions', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -123,6 +123,26 @@ export default function AssetSubmissionForm() {
                         value={formData.location.country}
                         onChange={(e) => handleChange('location', 'country', e.target.value)}
                     />
+                </div>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="col-span-1">
+                        <label className="block text-xs text-slate-500 mb-1">Latitude</label>
+                        <input
+                            type="number" step="0.000001" placeholder="e.g. 28.4595"
+                            className="w-full rounded border p-2 border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                            value={formData.location.coordinates.lat}
+                            onChange={(e) => handleChange('location', 'coordinates', { ...formData.location.coordinates, lat: parseFloat(e.target.value) })}
+                        />
+                    </div>
+                    <div className="col-span-1">
+                        <label className="block text-xs text-slate-500 mb-1">Longitude</label>
+                        <input
+                            type="number" step="0.000001" placeholder="e.g. 77.0266"
+                            className="w-full rounded border p-2 border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                            value={formData.location.coordinates.lng}
+                            onChange={(e) => handleChange('location', 'coordinates', { ...formData.location.coordinates, lng: parseFloat(e.target.value) })}
+                        />
+                    </div>
                 </div>
             </div>
 

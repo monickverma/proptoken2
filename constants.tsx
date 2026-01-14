@@ -3,42 +3,62 @@ import { Asset, Wallet } from './types';
 
 export const DUMMY_ASSETS: Asset[] = [
   {
-    id: 'plot-001',
-    name: 'Emerald Meadows',
-    location: 'Sarjapur, Bengaluru',
-    yieldPercent: 9.2,
+    id: 'ASSET-GGM-001',
+    name: 'DLF Cyber Hub',
+    location: 'DLF Cyber City, Phase 2, Gurugram',
+    yieldPercent: 11.5,
     tokenPrice: 5000,
-    totalTokens: 20000,
-    image: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800&h=600',
+    totalTokens: 1000000,
+    image: 'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=77.0895421,28.4949762&z=17&l=sat&size=600,450',
     risk: 'Low'
   },
   {
-    id: 'plot-002',
-    name: 'Heritage Acres',
-    location: 'Nandi Hills, Karnataka',
-    yieldPercent: 12.5,
-    tokenPrice: 8500,
-    totalTokens: 15000,
-    image: 'https://images.unsplash.com/photo-1592591502264-74a342dddf93?auto=format&fit=crop&q=80&w=800&h=600',
+    id: 'ASSET-GGM-002',
+    name: 'One Horizon Center',
+    location: 'Golf Course Road, Sector 43, Gurugram',
+    yieldPercent: 12.8,
+    tokenPrice: 12000,
+    totalTokens: 2500000,
+    image: 'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=77.096463,28.450929&z=17&l=sat&size=600,450',
     risk: 'Medium'
   },
   {
-    id: 'plot-003',
-    name: 'Royal Palm Grove',
-    location: 'ECR, Chennai',
-    yieldPercent: 8.8,
-    tokenPrice: 12000,
-    totalTokens: 10000,
-    image: 'https://images.unsplash.com/photo-1605146769289-440113cc3d00?auto=format&fit=crop&q=80&w=800&h=600',
+    id: 'ASSET-GGM-003',
+    name: 'Ambience Mall Complex',
+    location: 'NH-8, Ambience Island, Gurugram',
+    yieldPercent: 10.2,
+    tokenPrice: 2500,
+    totalTokens: 5000000,
+    image: 'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=77.09679,28.50418&z=17&l=sat&size=600,450',
+    risk: 'Low'
+  },
+  {
+    id: 'ASSET-GGM-004',
+    name: 'Worldmark Gurugram',
+    location: 'Sector 65, Gurugram',
+    yieldPercent: 11.0,
+    tokenPrice: 4500,
+    totalTokens: 1500000,
+    image: 'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=77.071944,28.397722&z=17&l=sat&size=600,450',
+    risk: 'Medium'
+  },
+  {
+    id: 'ASSET-GGM-005',
+    name: 'Candor TechSpace',
+    location: 'Sector 48, Sohna Road, Gurugram',
+    yieldPercent: 10.5,
+    tokenPrice: 3500,
+    totalTokens: 3000000,
+    image: 'https://static-maps.yandex.ru/1.x/?lang=en_US&ll=77.03126,28.42534&z=17&l=sat&size=600,450',
     risk: 'Low'
   }
 ];
 
 export const INITIAL_WALLET: Wallet = {
   tokensByAsset: {
-    'plot-001': 50,
-    'plot-002': 0,
-    'plot-003': 10,
+    'ASSET-GGM-001': 50,
+    'ASSET-GGM-002': 0,
+    'ASSET-GGM-003': 10,
   },
   totalInvested: 370000,
   stablecoinBalance: 150000,
