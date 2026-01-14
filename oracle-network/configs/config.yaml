@@ -1,0 +1,22 @@
+server:
+  port: 8080
+  host: "0.0.0.0"
+  timeout: 300
+
+# ZERO COST CONFIGURATION
+apis:
+  google:
+    maps_api_key: "MOCKED_FREE_TIER"
+    vision_api_key: "MOCKED_FREE_TIER"
+  mca:
+    base_url: "MOCKED_FREE_TIER"
+    api_key: "MOCKED_FREE_TIER"
+
+scoring:
+  weights:
+    satellite: 0.30
+    vision: 0.25
+    registry: 0.25
+  thresholds:
+    min_existence: 0.80
+    min_ownership: 0.80
