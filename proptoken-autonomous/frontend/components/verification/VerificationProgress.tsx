@@ -69,24 +69,47 @@ function TruthCard({ evidence }: { evidence: any }) {
 export default function VerificationProgress({ submissionId }: { submissionId: string }) {
     const [status, setStatus] = useState<any>(null);
     const [showVault, setShowVault] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!submissionId || submissionId === 'undefined') return;
+
         const poll = setInterval(async () => {
             try {
                 const data = await getSubmissionStatus(submissionId);
                 setStatus(data);
-            } catch (e) {
+                setError(null);
+            } catch (e: any) {
                 console.error(e);
+                setError(e.message || 'Failed to sync with oracle net');
             }
         }, 3000);
 
         return () => clearInterval(poll);
     }, [submissionId]);
 
+    if (error && error.includes('not found')) {
+        return (
+            <div className="max-w-4xl mx-auto p-12 bg-white rounded-3xl shadow-xl border border-red-100 text-center space-y-4">
+                <div className="text-4xl">🔍</div>
+                <h2 className="text-2xl font-black text-gray-900 uppercase">Submission Not Found</h2>
+                <p className="text-gray-500">The submission ID <code className="bg-gray-100 px-2 py-1 rounded text-red-600">{submissionId}</code> could not be located on the protocol network.</p>
+                <button
+                    onClick={() => window.location.href = '/submit'}
+                    className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors"
+                >
+                    Create New Submission
+                </button>
+            </div>
+        );
+    }
+
     if (!status) return (
         <div className="flex flex-col items-center justify-center p-24 space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-100 border-t-indigo-600"></div>
-            <p className="text-gray-400 text-sm font-medium animate-pulse">Syncing with Oracle Network...</p>
+            <div className={`animate-spin rounded-full h-12 w-12 border-4 border-indigo-100 ${error ? 'border-t-red-500' : 'border-t-indigo-600'}`}></div>
+            <p className="text-gray-400 text-sm font-medium animate-pulse">
+                {error ? 'Protocol Error: Attempting to Reconnect...' : 'Syncing with Oracle Network...'}
+            </p>
         </div>
     );
 
@@ -104,8 +127,8 @@ export default function VerificationProgress({ submissionId }: { submissionId: s
                 <div className="flex flex-col items-end">
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Final Clearance</span>
                     <div className={`px-6 py-2 rounded-2xl text-sm font-black shadow-xl transition-all duration-500 scale-110 ${status.verificationStatus?.consensus === 'ELIGIBLE'
-                            ? 'bg-green-500 text-white shadow-green-200'
-                            : 'bg-indigo-600 text-white shadow-indigo-100 animate-pulse'
+                        ? 'bg-green-500 text-white shadow-green-200'
+                        : 'bg-indigo-600 text-white shadow-indigo-100 animate-pulse'
                         }`}>
                         {status.verificationStatus?.consensus || 'ANALYZING'}
                     </div>
@@ -120,17 +143,17 @@ export default function VerificationProgress({ submissionId }: { submissionId: s
                     { id: 'legal', label: 'Legal', color: 'purple', desc: 'SPV Wrapping' }
                 ].map((step, idx) => (
                     <div key={step.id} className={`group p-6 border rounded-2xl transition-all duration-500 ${status.verificationStatus?.[step.id] === 'DONE' || status.verificationStatus?.[step.id] === 'ELIGIBLE'
-                            ? `bg-${step.color}-50/30 border-${step.color}-100 translate-y-[-4px]`
-                            : 'bg-gray-50/50 border-gray-100 opacity-60'
+                        ? `bg-${step.color}-50/30 border-${step.color}-100 translate-y-[-4px]`
+                        : 'bg-gray-50/50 border-gray-100 opacity-60'
                         }`}>
                         <div className="flex items-center justify-between mb-4">
                             <span className={`text-[10px] font-black uppercase tracking-tighter ${status.verificationStatus?.[step.id] === 'DONE' || status.verificationStatus?.[step.id] === 'ELIGIBLE'
-                                    ? `text-${step.color}-600`
-                                    : 'text-gray-400'
+                                ? `text-${step.color}-600`
+                                : 'text-gray-400'
                                 }`}>Phase 0{idx + 1}</span>
                             <div className={`w-2 h-2 rounded-full ${status.verificationStatus?.[step.id] === 'DONE' || status.verificationStatus?.[step.id] === 'ELIGIBLE'
-                                    ? `bg-${step.color}-500 shadow-[0_0_10px_#${step.color}]`
-                                    : 'bg-gray-200'
+                                ? `bg-${step.color}-500 shadow-[0_0_10px_#${step.color}]`
+                                : 'bg-gray-200'
                                 }`} />
                         </div>
                         <h3 className="font-black text-gray-800 mb-1">{step.label}</h3>

@@ -66,9 +66,10 @@ export default function AssetSubmissionForm() {
                         value={formData.category}
                         onChange={(e) => handleChange('root', 'category', e.target.value)}
                     >
-                        <option value="real-estate">Real Estate</option>
-                        <option value="commercial">Commercial</option>
-                        <option value="commodity">Commodity</option>
+                        <option value="real-estate">Real Estate / Housing</option>
+                        <option value="private-credit">Commercial / Private Credit</option>
+                        <option value="commodity">Commodity / Land</option>
+                        <option value="ip-rights">IP / Digital Rights</option>
                     </select>
                 </div>
 
@@ -129,8 +130,29 @@ export default function AssetSubmissionForm() {
 
             {/* Financials */}
             <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Financials</h3>
+                <h3 className="text-lg font-semibold">Financials & Identity</h3>
                 <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium">Registry IDs (Comma separated)</label>
+                        <input
+                            type="text"
+                            placeholder="e.g. REG-GGM-123, REG-PL-456"
+                            className="w-full rounded border p-2 mt-1"
+                            value={formData.registryIds.join(', ')}
+                            onChange={(e) => handleChange('root', 'registryIds', e.target.value.split(',').map(s => s.trim()))}
+                        />
+                    </div>
+                    <div className="col-span-2">
+                        <label className="block text-sm font-medium">Owner Name (Legal Entity)</label>
+                        <input
+                            type="text"
+                            placeholder="e.g. ABC Realty Pvt Ltd"
+                            className="w-full rounded border p-2 mt-1"
+                            // @ts-ignore
+                            value={formData.ownerName || ''}
+                            onChange={(e) => handleChange('root', 'ownerName', e.target.value)}
+                        />
+                    </div>
                     <div>
                         <label className="block text-xs">Expected Yield (%)</label>
                         <input

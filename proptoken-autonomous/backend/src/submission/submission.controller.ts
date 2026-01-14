@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, NotFoundException } from '@nestjs/common';
 import { SubmissionService } from './submission.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { SubmissionResponseDto } from './dto/submission-response.dto';
@@ -14,7 +14,11 @@ export class SubmissionController {
 
     @Get(':id')
     async findOne(@Param('id') id: string) {
-        return this.submissionService.getSubmission(id);
+        const submission = this.submissionService.getSubmission(id);
+        if (!submission) {
+            throw new NotFoundException(`Submission ${id} not found`);
+        }
+        return submission;
     }
 
     @Get()
