@@ -43,6 +43,7 @@ type AssetRegistryAsset struct {
 	Eligible          bool
 	Tokenized         bool
 	TokenAddress      common.Address
+	IsMock            bool
 }
 
 // AssetRegistryMetaData contains all meta data concerning the AssetRegistry contract.
@@ -738,23 +739,23 @@ func (_AssetRegistry *AssetRegistryTransactorSession) MarkAsTokenized(fingerprin
 
 // RegisterAsset is a paid mutator transaction binding the contract method 0x71aa80fd.
 //
-// Solidity: function registerAsset(bytes32 fingerprint, address owner, bytes32 oracleAttestation, bytes32 abmOutputHash, uint256[4] scores, bool eligible) returns()
-func (_AssetRegistry *AssetRegistryTransactor) RegisterAsset(opts *bind.TransactOpts, fingerprint [32]byte, owner common.Address, oracleAttestation [32]byte, abmOutputHash [32]byte, scores [4]*big.Int, eligible bool) (*types.Transaction, error) {
-	return _AssetRegistry.contract.Transact(opts, "registerAsset", fingerprint, owner, oracleAttestation, abmOutputHash, scores, eligible)
+// Solidity: function registerAsset(bytes32 fingerprint, address owner, bytes32 oracleAttestation, bytes32 abmOutputHash, uint256[4] scores, bool eligible, bool isMock) returns()
+func (_AssetRegistry *AssetRegistryTransactor) RegisterAsset(opts *bind.TransactOpts, fingerprint [32]byte, owner common.Address, oracleAttestation [32]byte, abmOutputHash [32]byte, scores [4]*big.Int, eligible bool, isMock bool) (*types.Transaction, error) {
+	return _AssetRegistry.contract.Transact(opts, "registerAsset", fingerprint, owner, oracleAttestation, abmOutputHash, scores, eligible, isMock)
 }
 
 // RegisterAsset is a paid mutator transaction binding the contract method 0x71aa80fd.
 //
-// Solidity: function registerAsset(bytes32 fingerprint, address owner, bytes32 oracleAttestation, bytes32 abmOutputHash, uint256[4] scores, bool eligible) returns()
-func (_AssetRegistry *AssetRegistrySession) RegisterAsset(fingerprint [32]byte, owner common.Address, oracleAttestation [32]byte, abmOutputHash [32]byte, scores [4]*big.Int, eligible bool) (*types.Transaction, error) {
-	return _AssetRegistry.Contract.RegisterAsset(&_AssetRegistry.TransactOpts, fingerprint, owner, oracleAttestation, abmOutputHash, scores, eligible)
+// Solidity: function registerAsset(bytes32 fingerprint, address owner, bytes32 oracleAttestation, bytes32 abmOutputHash, uint256[4] scores, bool eligible, bool isMock) returns()
+func (_AssetRegistry *AssetRegistrySession) RegisterAsset(fingerprint [32]byte, owner common.Address, oracleAttestation [32]byte, abmOutputHash [32]byte, scores [4]*big.Int, eligible bool, isMock bool) (*types.Transaction, error) {
+	return _AssetRegistry.Contract.RegisterAsset(&_AssetRegistry.TransactOpts, fingerprint, owner, oracleAttestation, abmOutputHash, scores, eligible, isMock)
 }
 
 // RegisterAsset is a paid mutator transaction binding the contract method 0x71aa80fd.
 //
-// Solidity: function registerAsset(bytes32 fingerprint, address owner, bytes32 oracleAttestation, bytes32 abmOutputHash, uint256[4] scores, bool eligible) returns()
-func (_AssetRegistry *AssetRegistryTransactorSession) RegisterAsset(fingerprint [32]byte, owner common.Address, oracleAttestation [32]byte, abmOutputHash [32]byte, scores [4]*big.Int, eligible bool) (*types.Transaction, error) {
-	return _AssetRegistry.Contract.RegisterAsset(&_AssetRegistry.TransactOpts, fingerprint, owner, oracleAttestation, abmOutputHash, scores, eligible)
+// Solidity: function registerAsset(bytes32 fingerprint, address owner, bytes32 oracleAttestation, bytes32 abmOutputHash, uint256[4] scores, bool eligible, bool isMock) returns()
+func (_AssetRegistry *AssetRegistryTransactorSession) RegisterAsset(fingerprint [32]byte, owner common.Address, oracleAttestation [32]byte, abmOutputHash [32]byte, scores [4]*big.Int, eligible bool, isMock bool) (*types.Transaction, error) {
+	return _AssetRegistry.Contract.RegisterAsset(&_AssetRegistry.TransactOpts, fingerprint, owner, oracleAttestation, abmOutputHash, scores, eligible, isMock)
 }
 
 // RenounceRole is a paid mutator transaction binding the contract method 0x36568abe.

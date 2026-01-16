@@ -21,6 +21,8 @@ ChartJS.register(
     Tooltip,
     Legend
 );
+import { MintTokens } from '../components/MintTokens';
+import { MockAssetBadge } from '../components/MockAssetBadge';
 
 interface TokenDetails {
     address: string;
@@ -179,22 +181,25 @@ const TokenDetail: React.FC = () => {
 
                 {/* Token Header */}
                 <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2">{token.name}</h1>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-4xl font-bold mb-2">{token.name}</h1>
+                        <MockAssetBadge isMock={true} size="md" />
+                    </div>
                     <p className="text-gray-300">{token.symbol}</p>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column - Charts & Info */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* NAV Chart */}
+                        {/* ... (Chart and Details remain same) ... */}
                         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
                             <h2 className="text-2xl font-bold mb-6">NAV History (30 Days)</h2>
                             <Line data={chartData} options={chartOptions} />
                         </div>
 
-                        {/* Token Info */}
                         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
                             <h2 className="text-2xl font-bold mb-6">Asset Details</h2>
+                            {/* ... details ... */}
                             <div className="space-y-4">
                                 <div>
                                     <div className="text-gray-400 text-sm">Description</div>
@@ -231,45 +236,14 @@ const TokenDetail: React.FC = () => {
                             <div className="text-green-400 text-sm">+2.1% (24h)</div>
                         </div>
 
-                        {/* Buy Form */}
+                        {/* Buy Form using MintTokens */}
                         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-                            <h3 className="text-xl font-bold mb-4">Buy Tokens</h3>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">Amount (tokens)</label>
-                                    <input
-                                        type="number"
-                                        value={buyAmount}
-                                        onChange={(e) => setBuyAmount(e.target.value)}
-                                        placeholder="0.00"
-                                        className="w-full bg-white/5 border border-white/20 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500"
-                                    />
-                                </div>
-
-                                <div className="bg-white/5 p-4 rounded-lg space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-400">Price per Token</span>
-                                        <span className="font-medium">{formatCurrency(navPerToken)}</span>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-gray-400">Total Cost</span>
-                                        <span className="font-bold text-lg">{formatCurrency(totalCost)}</span>
-                                    </div>
-                                </div>
-
-                                <button
-                                    onClick={handleBuy}
-                                    disabled={!buyAmount || parseFloat(buyAmount) <= 0}
-                                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 rounded-lg font-semibold hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Buy Tokens
-                                </button>
-
-                                <p className="text-xs text-gray-400 text-center">
-                                    By purchasing, you agree to the terms and conditions. KYC verification required.
-                                </p>
-                            </div>
+                            <MintTokens
+                                assetId={token.address}
+                                pricePerToken={navPerToken}
+                                availableTokens={100}
+                                onSuccess={() => alert('Token purchase simulated!')}
+                            />
                         </div>
 
                         {/* Stats Card */}

@@ -38,7 +38,19 @@ export class LegalEntitiesService {
 
         // Mocking India-specific formation (e.g., via Vakilsearch)
         const entityId = uuidv4();
-        const legalName = `PropToken ${request.entityType} - ${request.assetId.slice(0, 8).toUpperCase()}`;
+        const isMock = request.assetId.startsWith('MOCK-');
+
+        const legalName = isMock
+            ? `[MOCK] PropToken ${request.entityType} - ${request.assetId.slice(5, 13).toUpperCase()}`
+            : `PropToken ${request.entityType} - ${request.assetId.slice(0, 8).toUpperCase()}`;
+
+        const taxId = isMock
+            ? `MOCK-PAN-${Math.random().toString(36).substring(2, 8).toUpperCase()}`
+            : `PAN-${Math.random().toString(36).substring(2, 12).toUpperCase()}`;
+
+        const address = isMock
+            ? 'Mock Street, Virtual City, Testnet 10101, Metaverse'
+            : '123, BKC Hub, Mumbai, Maharashtra 400051, India';
 
         const entity: LegalEntity = {
             id: entityId,
@@ -46,14 +58,14 @@ export class LegalEntitiesService {
             entityType: request.entityType,
             jurisdiction: request.jurisdiction,
             legalName: legalName,
-            taxId: `PAN-${Math.random().toString(36).substring(2, 12).toUpperCase()}`,
+            taxId: taxId,
             incorporationDate: new Date().toISOString().split('T')[0],
-            registeredAddress: '123, BKC Hub, Mumbai, Maharashtra 400051, India',
+            registeredAddress: address,
             directors: ['PropToken Authorized Signatory', 'Asset Custodian Ltd'],
             bankAccount: {
-                bankName: 'ICICI Bank',
+                bankName: isMock ? 'Mock Bank of Testnet' : 'ICICI Bank',
                 accountNumber: `XXXXXX${Math.floor(100000 + Math.random() * 900000)}`,
-                ifsc: 'ICIC0001234'
+                ifsc: isMock ? 'MOCK0000000' : 'ICIC0001234'
             },
             status: 'ACTIVE',
             documents: [

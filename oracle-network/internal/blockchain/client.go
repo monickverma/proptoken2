@@ -49,7 +49,7 @@ func NewClient(rpcURL, privateKeyHex, contractAddr string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) PushAttestation(subID string, att types.AttestationData) (string, error) {
+func (c *Client) PushAttestation(subID string, att types.AttestationData, isMock bool) (string, error) {
 	auth, err := bind.NewKeyedTransactorWithChainID(c.PrivateKey, c.ChainID)
 	if err != nil {
 		return "", fmt.Errorf("failed to create transactor: %v", err)
@@ -82,6 +82,7 @@ func (c *Client) PushAttestation(subID string, att types.AttestationData) (strin
 		mockAbmHash,
 		mockScores,
 		true, // Eligible
+		isMock,
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to send transaction: %v", err)

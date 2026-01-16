@@ -6,6 +6,7 @@ export enum AssetCategory {
     PRIVATE_CREDIT = 'private-credit',
     COMMODITY = 'commodity',
     IP_RIGHTS = 'ip-rights',
+    TEST = 'test',
 }
 
 class LocationDto {

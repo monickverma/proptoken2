@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreateSubmissionDto } from './dto/create-submission.dto';
+import { CreateSubmissionDto, AssetCategory } from './dto/create-submission.dto';
 import { SubmissionResponseDto } from './dto/submission-response.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { OracleService } from '../oracle/oracle.service';
@@ -24,14 +24,20 @@ export class SubmissionService {
     ) { }
 
     async create(createSubmissionDto: CreateSubmissionDto): Promise<SubmissionResponseDto> {
-        const submissionId = uuidv4();
+        const isMock = createSubmissionDto.category === AssetCategory.TEST || (createSubmissionDto.location?.city || '').includes('Mock');
+        const submissionId = isMock ? `MOCK-${uuidv4()}` : uuidv4();
         const timestamp = new Date().toISOString();
+
+        // Deterministic mock fingerprint if isMock
+        const mockFingerprint = isMock ? '0x74657374' + uuidv4().replace(/-/g, '') : null;
 
         const submission = {
             id: submissionId,
             ...createSubmissionDto,
             status: 'RECEIVED',
             timestamp,
+            isMock,
+            mockFingerprint, // Store likely fingerprint for verification
             verificationStatus: {
                 oracle: 'PENDING',
                 abm: 'PENDING',
@@ -116,7 +122,7 @@ export class SubmissionService {
 
             // 4. Registry & Legal Workflow
             if (consensusResult.eligible) {
-                await this.registryService.registerAsset(id, consensusResult);
+                await this.registryService.registerAsset(id, consensusResult, submission);
 
                 // Trigger STEP 2: Legal Wrapper Workflow
                 this.logger.log(`Triggering Legal Workflow for asset ${id}`);

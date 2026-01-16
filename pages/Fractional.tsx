@@ -3,6 +3,8 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { DUMMY_ASSETS } from '../constants';
 import { Layers, ShoppingCart, CheckCircle2, AlertCircle, Loader2, ExternalLink, Search, Filter, SlidersHorizontal, X } from 'lucide-react';
+import { MintTokens } from '../components/MintTokens';
+import { MockAssetBadge } from '../components/MockAssetBadge';
 
 // Evidence Modal Component
 const EvidenceModal = ({ asset, onClose }: { asset: any, onClose: () => void }) => {
@@ -279,8 +281,8 @@ const Fractional: React.FC = () => {
                     key={asset.id}
                     onClick={() => { setSelectedAssetId(asset.id); setError(null); }}
                     className={`relative p-6 rounded-xl border-2 text-left transition-all ${selectedAssetId === asset.id
-                        ? 'border-indigo-600 bg-indigo-50/20 dark:bg-indigo-900/10'
-                        : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
+                      ? 'border-indigo-600 bg-indigo-50/20 dark:bg-indigo-900/10'
+                      : 'border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                   >
                     <div className="flex items-center gap-4">
@@ -362,7 +364,10 @@ const Fractional: React.FC = () => {
               <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-xl space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Contract Asset</span>
-                  <span className="font-black text-slate-900 dark:text-slate-100">{selectedAsset.name}</span>
+                  <div className="text-right">
+                    <div className="font-black text-slate-900 dark:text-slate-100">{selectedAsset.name}</div>
+                    <MockAssetBadge isMock={Boolean(selectedAsset.id.startsWith('MOCK') || selectedAsset.name.includes('DLF'))} size="sm" className="mt-1 justify-end" />
+                  </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Price Per Unit</span>
@@ -381,52 +386,18 @@ const Fractional: React.FC = () => {
         <div className="lg:col-span-4 space-y-10">
           <div className="bg-slate-900 dark:bg-slate-800 p-8 rounded-xl text-white">
             <h2 className="text-lg font-black uppercase tracking-widest mb-6">Ledger Execution</h2>
-            <div className="space-y-6 mb-10">
-              <div className="p-4 bg-white/10 rounded-lg flex justify-between items-center">
-                <span className="text-[10px] font-black uppercase text-white/60 tracking-widest">Network</span>
-                <span className="font-black text-indigo-400">Polygon</span>
-              </div>
-              {!canAfford && (
-                <div className="p-4 bg-red-500/20 text-red-500 border border-red-500/50 rounded-lg flex items-center gap-3 text-xs font-black uppercase tracking-widest">
-                  <AlertCircle className="w-4 h-4" /> Insufficient Funds
-                </div>
-              )}
-              {error && (
-                <div className="p-4 bg-amber-500/20 text-amber-500 border border-amber-500/50 rounded-lg flex items-center gap-3 text-[10px] font-black uppercase tracking-widest">
-                  <AlertCircle className="w-4 h-4 shrink-0" /> {error}
-                </div>
-              )}
-            </div>
 
-            <button
-              onClick={handlePurchase}
-              disabled={isProcessing || !canAfford || filteredAssets.length === 0}
-              className="w-full bg-indigo-600 text-white py-5 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-indigo-500 transition-all flex items-center justify-center gap-3 disabled:opacity-50 btn-flat"
-            >
-              {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : (
-                <> <ShoppingCart className="w-5 h-5" /> Sign & Mint Units </>
-              )}
-            </button>
+            <MintTokens
+              assetId={selectedAsset.id}
+              pricePerToken={selectedAsset.tokenPrice}
+              availableTokens={1000}
+              onSuccess={() => { }}
+            />
+
             <p className="text-center text-[10px] text-white/40 mt-6 uppercase font-black leading-tight tracking-widest">
-              Transaction will be broadcasted to the Polygon network for finality.
+              Transaction will be broadcasted to the Base Sepolia network.
             </p>
           </div>
-
-          {txHash && (
-            <div className="bg-emerald-500 text-white p-8 rounded-xl space-y-4 animate-in zoom-in duration-300">
-              <div className="flex items-center gap-4">
-                <CheckCircle2 className="w-8 h-8 shrink-0" />
-                <p className="font-black text-lg uppercase tracking-tight">Minted</p>
-              </div>
-              <div className="bg-black/20 p-4 rounded-lg">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Transaction Hash</p>
-                <p className="text-[10px] font-mono break-all opacity-90">{txHash}</p>
-              </div>
-              <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:underline">
-                View on Polygonscan <ExternalLink className="w-3 h-3" />
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

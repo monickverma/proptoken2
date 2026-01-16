@@ -29,23 +29,28 @@ contract AssetRegistry is AccessControl, ReentrancyGuard {
         uint256 timestamp;             // Registration timestamp
         bool eligible;                 // Eligibility flag
         bool tokenized;                // Has token been deployed?
+        bool isMock;                   // Mock/Test asset flag
         address tokenAddress;          // Address of deployed token (if any)
     }
     
     // Fingerprint => Asset
     mapping(bytes32 => Asset) public assets;
     
-    // Owner => Array of fingerprints
+    // Owner => Array of fingers
     mapping(address => bytes32[]) public ownerAssets;
     
     // Fingerprint => exists
     mapping(bytes32 => bool) public registeredFingerprints;
+
+    // CONSTANTS
+    bytes4 constant MOCK_PREFIX = 0x74657374; // "test" in hex
     
     // Events
     event AssetRegistered(
         bytes32 indexed fingerprint,
         address indexed owner,
         bool eligible,
+        bool isMock,
         uint256 timestamp
     );
     
@@ -73,6 +78,7 @@ contract AssetRegistry is AccessControl, ReentrancyGuard {
      * @param abmOutputHash Hash of ABM analysis
      * @param scores Array of [existence, ownership, fraud, risk]
      * @param eligible Eligibility decision
+     * @param isMock Explicit mock flag (optional override)
      */
     function registerAsset(
         bytes32 fingerprint,
@@ -80,7 +86,8 @@ contract AssetRegistry is AccessControl, ReentrancyGuard {
         bytes32 oracleAttestation,
         bytes32 abmOutputHash,
         uint256[4] calldata scores, // [existence, ownership, fraud, risk]
-        bool eligible
+        bool eligible,
+        bool isMock
     ) external onlyRole(CONSENSUS_ROLE) nonReentrant {
         require(!registeredFingerprints[fingerprint], "Asset already registered");
         require(owner != address(0), "Invalid owner");
@@ -88,6 +95,10 @@ contract AssetRegistry is AccessControl, ReentrancyGuard {
         require(scores[1] <= 1e18, "Invalid ownership score");
         require(scores[2] <= 1e18, "Invalid fraud score");
         require(scores[3] <= 100, "Invalid risk score");
+
+        // Auto-detect mock assets by fingerprint prefix
+        bool detectedMock = bytes4(fingerprint) == MOCK_PREFIX;
+        bool finalMockStatus = isMock || detectedMock;
         
         Asset memory asset = Asset({
             fingerprint: fingerprint,
@@ -101,6 +112,7 @@ contract AssetRegistry is AccessControl, ReentrancyGuard {
             timestamp: block.timestamp,
             eligible: eligible,
             tokenized: false,
+            isMock: finalMockStatus,
             tokenAddress: address(0)
         });
         
@@ -108,7 +120,7 @@ contract AssetRegistry is AccessControl, ReentrancyGuard {
         ownerAssets[owner].push(fingerprint);
         registeredFingerprints[fingerprint] = true;
         
-        emit AssetRegistered(fingerprint, owner, eligible, block.timestamp);
+        emit AssetRegistered(fingerprint, owner, eligible, finalMockStatus, block.timestamp);
     }
     
     /**

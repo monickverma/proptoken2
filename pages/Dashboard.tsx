@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import StatCard from '../components/StatCard';
 import { Wallet, Layers, LineChart, ExternalLink, MapPin, Search, Filter } from 'lucide-react';
 import { DUMMY_ASSETS } from '../constants';
+import { BlockchainPulse } from '../components/BlockchainPulse';
 
 const Dashboard: React.FC = () => {
   const { wallet } = useAuth();
@@ -49,7 +50,12 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Live Blockchain Feed - Takes up full width on mobile, 1 col on large screens */}
+        <div className="lg:col-span-3">
+          <BlockchainPulse />
+        </div>
+
         <StatCard
           title="Total Invested"
           value={`₹${wallet.totalInvested.toLocaleString()}`}
