@@ -63,7 +63,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission) => {
       const docCount = submission.documentUrls.length;
       const imageCount = submission.imageUrls.length;
-      
+
       if (docCount < 2 || imageCount < 2) {
         return {
           type: 'insufficient_documents',
@@ -108,14 +108,14 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
       if (!prodOracle) return null;
       const lowConfidence = prodOracle.documentExtraction
         .filter(d => d.success && d.data && d.data.confidence < 0.7);
-      
+
       if (lowConfidence.length > 0) {
         return {
           type: 'low_ocr_confidence',
           severity: 'low',
           detail: `${lowConfidence.length} document(s) have low OCR confidence (<70%)`,
           score: 0.1,
-          evidence: lowConfidence.map(d => 
+          evidence: lowConfidence.map(d =>
             `${d.data?.documentType}: ${((d.data?.confidence || 0) * 100).toFixed(0)}% confidence`
           )
         };
@@ -180,7 +180,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission) => {
       const incDate = new Date(submission.spv.incorporationDate);
       const daysSinceInc = (Date.now() - incDate.getTime()) / (1000 * 60 * 60 * 24);
-      
+
       if (daysSinceInc < 90) {
         return {
           type: 'recent_incorporation',
@@ -205,7 +205,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
       if (!prodOracle?.mcaVerification.data) return null;
       const submittedCount = submission.spv.directors.length;
       const mcaCount = prodOracle.mcaVerification.data.directors.length;
-      
+
       if (Math.abs(submittedCount - mcaCount) > 1) {
         return {
           type: 'director_mismatch',
@@ -229,7 +229,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission, oracle, abm, prodOracle) => {
       if (!prodOracle?.mcaVerification.data) return null;
       const openCharges = prodOracle.mcaVerification.data.charges.filter(c => c.status === 'Open');
-      
+
       if (openCharges.length > 0) {
         const totalAmount = openCharges.reduce((sum, c) => sum + c.amount, 0);
         return {
@@ -237,7 +237,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
           severity: totalAmount > 10000000 ? 'critical' : 'high',
           detail: `${openCharges.length} open charge(s) totaling ₹${totalAmount.toLocaleString()} registered against SPV`,
           score: Math.min(0.35, openCharges.length * 0.12),
-          evidence: openCharges.map(c => 
+          evidence: openCharges.map(c =>
             `${c.chargeHolder}: ₹${c.amount.toLocaleString()} (${c.status})`
           )
         };
@@ -280,12 +280,12 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
       const claimedYield = submission.financials.expectedYield;
       const marketYield = abm.yield.marketMedianYield;
       const threshold = marketYield * 1.5;
-      
+
       if (claimedYield > threshold) {
         return {
           type: 'yield_anomaly',
           severity: claimedYield > marketYield * 2 ? 'critical' : 'high',
-          detail: `Claimed yield ${claimedYield}% is ${Math.round((claimedYield/marketYield - 1) * 100)}% above market median ${marketYield.toFixed(1)}%`,
+          detail: `Claimed yield ${claimedYield}% is ${Math.round((claimedYield / marketYield - 1) * 100)}% above market median ${marketYield.toFixed(1)}%`,
           score: Math.min(0.4, (claimedYield / marketYield - 1) * 0.3),
           evidence: [
             `Market median yield: ${marketYield.toFixed(1)}%`,
@@ -304,7 +304,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     severity: 'high',
     check: (submission, oracle, abm) => {
       const ratio = abm.nav.claimedVsCalculated;
-      
+
       if (ratio > 1.3) {
         return {
           type: 'nav_inflation',
@@ -329,7 +329,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission, oracle, abm) => {
       const annualRent = submission.financials.currentRent * 12;
       const rentToValue = (annualRent / submission.claimedValue) * 100;
-      
+
       // Typical rent-to-value is 3-10% for commercial
       if (rentToValue < 2 || rentToValue > 15) {
         return {
@@ -356,7 +356,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission) => {
       const annualRent = submission.financials.currentRent * 12;
       const expenseRatio = (submission.financials.annualExpenses / annualRent) * 100;
-      
+
       // Typical expense ratio is 20-40%
       if (expenseRatio < 10 || expenseRatio > 60) {
         return {
@@ -382,7 +382,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     severity: 'medium',
     check: (submission) => {
       const raiseRatio = submission.targetRaise / submission.claimedValue;
-      
+
       if (raiseRatio > 0.8) {
         return {
           type: 'excessive_raise',
@@ -411,10 +411,10 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission, oracle) => {
       const claimedSize = submission.specifications.size;
       const satelliteSize = oracle.existence.satellite.estimatedSize;
-      
+
       if (satelliteSize > 0) {
         const discrepancy = Math.abs(claimedSize - satelliteSize) / Math.max(claimedSize, satelliteSize);
-        
+
         if (discrepancy > 0.25) {
           return {
             type: 'size_mismatch',
@@ -440,14 +440,14 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission, oracle, abm, prodOracle) => {
       if (!prodOracle) return null;
       const failedMatches = prodOracle.registryCrossCheck.matches.filter(m => !m.match);
-      
+
       if (failedMatches.length >= 2) {
         return {
           type: 'registry_mismatch',
           severity: failedMatches.length >= 3 ? 'critical' : 'high',
           detail: `${failedMatches.length} data fields don't match registry records`,
           score: Math.min(0.4, failedMatches.length * 0.12),
-          evidence: failedMatches.map(m => 
+          evidence: failedMatches.map(m =>
             `${m.field}: Submitted "${m.submitted}" vs Registry "${m.registry}" (${Math.round(m.similarity * 100)}% match)`
           )
         };
@@ -462,7 +462,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     severity: 'high',
     check: (submission, oracle) => {
       const authenticity = oracle.existence.vision.authenticityScore;
-      
+
       if (authenticity < 0.7) {
         return {
           type: 'suspicious_images',
@@ -489,7 +489,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     severity: 'critical',
     check: (submission, oracle) => {
       const historical = oracle.existence.historical;
-      
+
       if (historical.priorFraudFlags > 0) {
         return {
           type: 'historical_fraud',
@@ -514,9 +514,9 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
     check: (submission, oracle) => {
       const ownershipProb = oracle.ownership.aggregatedProbability;
       const value = submission.claimedValue;
-      
+
       const valueThreshold = value > 50000000 ? 0.85 : 0.75;
-      
+
       if (ownershipProb < valueThreshold && value > 10000000) {
         return {
           type: 'ownership_risk',
@@ -545,7 +545,7 @@ const ENHANCED_FRAUD_RULES: EnhancedFraudRule[] = [
         oracle.existence.activity.taxScore * 0.3 +
         oracle.existence.activity.occupancyIndicators * 0.4
       );
-      
+
       if (claimedOccupancy > 0.8 && activityScore < 0.5) {
         return {
           type: 'activity_mismatch',
@@ -577,7 +577,7 @@ export function runEnhancedRuleBasedDetection(
 ): RuleBasedDetection {
   const anomalies: FraudAnomaly[] = [];
   const rulesTriggered: string[] = [];
-  
+
   for (const rule of ENHANCED_FRAUD_RULES) {
     try {
       const result = rule.check(submission, oracle, abm, productionOracle);
@@ -589,9 +589,9 @@ export function runEnhancedRuleBasedDetection(
       console.error(`Error in fraud rule ${rule.id}:`, error);
     }
   }
-  
+
   const totalScore = anomalies.reduce((sum, a) => sum + a.score, 0);
-  
+
   return {
     anomalies,
     rulesTriggered,
@@ -609,21 +609,21 @@ export function runEnhancedPatternDetection(
   productionOracle?: ProductionOracleResult
 ): PatternDetection {
   const anomalies: FraudAnomaly[] = [];
-  
+
   // Check for duplicate submissions (simulated)
   const duplicateSubmissions = Math.random() > 0.95;
-  
+
   // Check for linked fraudulent accounts
   const linkedFraudulentAccounts = oracle.existence.historical.priorFraudFlags > 0;
-  
+
   // Suspicious timing
   const suspiciousTimingPatterns = Math.random() > 0.92;
-  
+
   // Check document hash collisions (same docs submitted before)
-  const hashCollision = productionOracle && 
+  const hashCollision = productionOracle &&
     productionOracle.documentVerification.documentHashes.length > 0 &&
     Math.random() > 0.97;
-  
+
   if (duplicateSubmissions) {
     anomalies.push({
       type: 'duplicate_submission',
@@ -633,7 +633,7 @@ export function runEnhancedPatternDetection(
       evidence: ['Asset fingerprint matches previous submission']
     });
   }
-  
+
   if (linkedFraudulentAccounts) {
     anomalies.push({
       type: 'linked_fraud',
@@ -643,7 +643,7 @@ export function runEnhancedPatternDetection(
       evidence: [`Prior fraud flags: ${oracle.existence.historical.priorFraudFlags}`]
     });
   }
-  
+
   if (suspiciousTimingPatterns) {
     anomalies.push({
       type: 'suspicious_timing',
@@ -653,7 +653,7 @@ export function runEnhancedPatternDetection(
       evidence: ['3+ submissions in last 24 hours']
     });
   }
-  
+
   if (hashCollision) {
     anomalies.push({
       type: 'document_reuse',
@@ -663,7 +663,7 @@ export function runEnhancedPatternDetection(
       evidence: ['Same document hashes found in prior submissions']
     });
   }
-  
+
   return {
     duplicateSubmissions,
     linkedFraudulentAccounts,
@@ -691,10 +691,10 @@ export async function runEnhancedFraudDetection(
 ): Promise<FraudAnalysis> {
   // Run enhanced rule-based detection
   const ruleBased = runEnhancedRuleBasedDetection(submission, oracle, abm, productionOracle);
-  
+
   // Run pattern detection
   const patterns = runEnhancedPatternDetection(submission, oracle, productionOracle);
-  
+
   // ML-based detection (simplified for rule-based focus)
   const mlBased: MLBasedDetection = {
     isolationForestScore: ruleBased.totalScore * 0.8 + Math.random() * 0.2,
@@ -711,25 +711,25 @@ export async function runEnhancedFraudDetection(
       { feature: 'historical_reputation', importance: 0.08 }
     ]
   };
-  
+
   // Aggregate anomalies
   const allAnomalies = [
     ...ruleBased.anomalies,
     ...patterns.anomalies
   ];
-  
+
   // Calculate fraud likelihood
   const totalScore = allAnomalies.reduce((sum, a) => sum + a.score, 0);
-  
+
   // Weight by severity
   const severityMultiplier = allAnomalies.some(a => a.severity === 'critical') ? 1.5 :
-                             allAnomalies.some(a => a.severity === 'high') ? 1.2 : 1.0;
-  
+    allAnomalies.some(a => a.severity === 'high') ? 1.2 : 1.0;
+
   const fraudLikelihood = Math.min(100, totalScore * 50 * severityMultiplier);
-  
+
   const riskLevel = determineRiskLevel(fraudLikelihood);
   const passed = fraudLikelihood <= 5;
-  
+
   return {
     ruleBased,
     mlBased,

@@ -555,4 +555,259 @@ export function getFullVerificationResult(submissionId: string): FullVerificatio
     consensus: consensusResults.get(submissionId),
     eligibleAsset: getEligibleAssetBySubmission(submissionId)
   };
+}// =====================
+// SEEDING LOGIC
+// =====================
+
+import { INITIAL_ASSETS } from '../config/initialAssets';
+
+export function initializeRegistry() {
+  if (submissions.size > 0) return; // Already seeded
+
+  console.log('[Registry] Seeding pre-verified assets...');
+
+  INITIAL_ASSETS.forEach(assetData => {
+    // 1. Create Submission
+    const id = `SUB-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const submission: AssetSubmission = {
+      ...assetData as AssetSubmission,
+      id,
+      status: 'ELIGIBLE',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    submissions.set(id, submission);
+
+    // 2. Initialize Progress (Completed)
+    const progress: VerificationProgress = {
+      submissionId: id,
+      currentStage: 'ELIGIBLE',
+      stages: {
+        submission: { completed: true, timestamp: new Date() },
+        oracleVerification: {
+          completed: true,
+          progress: 100,
+          timestamp: new Date(),
+          subStages: {
+            satellite: { completed: true, score: 0.95 },
+            registry: { completed: true, score: 0.98 },
+            vision: { completed: true, score: 0.92 },
+            activity: { completed: true, score: 0.88 },
+            ownership: { completed: true, score: 0.95 }
+          }
+        },
+        abmAnalysis: {
+          completed: true,
+          progress: 100,
+          timestamp: new Date(),
+          subStages: {
+            marketIntelligence: { completed: true, score: 92 },
+            cashFlowSimulation: { completed: true },
+            riskSimulation: { completed: true, score: 85 }
+          }
+        },
+        fraudDetection: {
+          completed: true,
+          progress: 100,
+          timestamp: new Date(),
+          subStages: {
+            ruleBased: { completed: true, anomalies: 0 },
+            mlBased: { completed: true, score: 99 },
+            patterns: { completed: true }
+          }
+        },
+        consensusScoring: {
+          completed: true,
+          timestamp: new Date(),
+          eligible: true,
+          confidence: 0.96
+        }
+      },
+      logs: []
+    };
+    progressTracking.set(id, progress);
+
+    // 3. Create Result Objects
+    const oracleResult: OracleVerificationResult = {
+      passed: true,
+      overallScore: 96,
+      existence: {
+        aggregatedScore: 0.96,
+        confidence: 0.95,
+        passed: true,
+        satellite: {
+          provider: 'Sentinel',
+          imageUrl: assetData.imageUrls![0] || '',
+          captureDate: new Date().toISOString(),
+          resolution: 0.5,
+          structureDetected: true,
+          estimatedSize: assetData.specifications!.size,
+          changeDetected: false,
+          confidence: 0.95
+        },
+        registry: {
+          source: 'IGRS',
+          recordFound: true,
+          ownerNameMatch: 1.0,
+          addressMatch: 1.0,
+          registeredSize: assetData.specifications!.size,
+          encumbrances: [],
+          lastTransactionDate: new Date().toISOString(),
+          confidence: 0.98
+        },
+        vision: {
+          provider: 'Google Vision',
+          buildingDetected: true,
+          buildingType: 'commercial',
+          estimatedAge: assetData.specifications!.age,
+          conditionScore: 0.9,
+          authenticityScore: 0.95,
+          confidence: 0.92
+        },
+        activity: {
+          utilityActive: true,
+          utilityScore: 0.9,
+          taxPaymentsCurrent: true,
+          taxScore: 0.95,
+          occupancyIndicators: 0.8,
+          footTrafficScore: 0.85,
+          confidence: 0.88
+        },
+        historical: {
+          yearsOfData: 10,
+          consistentExistence: true,
+          priorSubmissions: 0,
+          priorFraudFlags: 0,
+          reputationScore: 0.9,
+          confidence: 0.9
+        }
+      },
+      ownership: {
+        aggregatedProbability: 0.95,
+        confidence: 0.95,
+        passed: true,
+        didVerification: {
+          didResolved: true,
+          linkedWallets: [assetData.walletAddress!],
+          nameFromDID: 'Demo User',
+          verificationLevel: 'verified',
+          score: 1.0
+        },
+        registryOwnership: {
+          ownerNameSimilarity: 1.0,
+          addressMatch: true,
+          walletLinked: true,
+          documentHashesValid: true,
+          score: 0.95
+        },
+        reputation: {
+          priorSuccessfulSubmissions: 1,
+          priorRejections: 0,
+          platformTenureMonths: 12,
+          socialGraphScore: 0.8,
+          score: 0.9
+        }
+      },
+      activityScore: 0.88
+    };
+    oracleResults.set(id, oracleResult);
+
+    const abmResult: ABMAnalysis = {
+      passed: true,
+      marketFitScore: 92,
+      confidence: 0.9,
+      investabilityScore: 88,
+      nav: {
+        minNAV: assetData.claimedValue! * 0.9,
+        maxNAV: assetData.claimedValue! * 1.1,
+        meanNAV: assetData.claimedValue!,
+        medianNAV: assetData.claimedValue!,
+        comparablesUsed: 5,
+        avgPricePerSqFt: assetData.claimedValue! / assetData.specifications!.size,
+        adjustedPricePerSqFt: assetData.claimedValue! / assetData.specifications!.size,
+        downsideNAV: assetData.claimedValue! * 0.85,
+        upsideNAV: assetData.claimedValue! * 1.15,
+        claimedVsCalculated: 1.0,
+        confidence: 0.9
+      },
+      yield: {
+        minYield: assetData.financials!.expectedYield - 1,
+        maxYield: assetData.financials!.expectedYield + 1,
+        expectedYield: assetData.financials!.expectedYield,
+        marketMedianYield: assetData.financials!.expectedYield - 0.5,
+        subjectYield: assetData.financials!.expectedYield,
+        yieldSpread: 0.5,
+        sustainabilityScore: 0.9,
+        confidence: 0.9
+      },
+      overallRiskScore: 15,
+      timestamp: new Date(),
+      comparables: [],
+      cashFlowSimulation: {
+        simulationRuns: 1000,
+        yearsSimulated: 5,
+        meanAnnualCF: [],
+        medianAnnualCF: [],
+        percentile5CF: [],
+        percentile95CF: [],
+        totalCFDistribution: { mean: 0, std: 0, min: 0, max: 0, percentile5: 0, percentile95: 0 },
+        probabilityPositiveCF: 0.95,
+        breakEvenYear: 2
+      },
+      riskSimulation: {
+        vacancyRiskScore: 10,
+        expectedVacancyRate: 0.05,
+        worstCaseVacancy: 0.15,
+        marketVolatility: 15,
+        correlationToIndex: 0.8,
+        betaCoefficient: 1.1,
+        interestRateSensitivity: 5,
+        durationYears: 5,
+        liquidityScore: 80,
+        estimatedTimeToSell: 90,
+        marketDepth: 0.8,
+        stressTests: [],
+        var95: 1000000,
+        var99: 2000000,
+        expectedShortfall: 1500000,
+        tailRiskScore: 0.2
+      }
+    };
+    abmResults.set(id, abmResult);
+
+    const fraudResult: FraudAnalysis = {
+      passed: true,
+      fraudLikelihood: 1.5,
+      riskLevel: 'low',
+      anomalyScore: 0,
+      ruleBased: { anomalies: [], rulesTriggered: [], totalScore: 0 },
+      mlBased: { xgboostFraudProb: 0.015, isolationForestScore: 0.9, anomalies: [], featureImportance: [] },
+      patterns: { duplicateSubmissions: false, linkedFraudulentAccounts: false, suspiciousTimingPatterns: false, anomalies: [] },
+      timestamp: new Date()
+    };
+    fraudResults.set(id, fraudResult);
+
+    const consensusResult: ConsensusScore = {
+      submissionId: id,
+      eligible: true,
+      confidence: 0.96,
+      existenceScore: 0.96,
+      ownershipProbability: 0.95,
+      activityScore: 0.88,
+      fraudLikelihood: 1.5,
+      riskScore: 15,
+      rules: [],
+      allRulesPassed: true,
+      rejectionReason: null,
+      timestamp: new Date()
+    };
+    consensusResults.set(id, consensusResult);
+
+    // 4. Register Eligible Asset
+    createEligibleAsset(submission, oracleResult, abmResult, fraudResult, consensusResult);
+  });
+  console.log(`[Registry] Seeded ${INITIAL_ASSETS.length} assets successfully.`);
 }
+
+// Auto-seed on load
+initializeRegistry();

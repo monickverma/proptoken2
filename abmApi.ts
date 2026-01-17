@@ -1,6 +1,6 @@
 import { SubmissionFormData, AssetSubmission, VerificationProgress, EligibleAsset, ConsensusScore } from './abmTypes';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = '';
 
 // Helper for API calls
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -11,13 +11,13 @@ async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
     },
     ...options,
   });
-  
+
   const data = await response.json();
-  
+
   if (!data.success) {
     throw new Error(data.error?.message || 'API request failed');
   }
-  
+
   return data.data;
 }
 
@@ -87,8 +87,8 @@ export async function getEligibleAsset(id: string): Promise<EligibleAsset> {
 }
 
 export async function claimCashFlowExposure(
-  assetId: string, 
-  claimantId: string, 
+  assetId: string,
+  claimantId: string,
   tokensToAcquire: number
 ): Promise<{ claim: any; message: string }> {
   return apiCall(`/abm/registry/${assetId}/claim`, {

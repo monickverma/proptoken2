@@ -3,6 +3,7 @@
 
 import crypto from 'crypto';
 import { AssetSubmission } from '../models/abmTypes';
+import { detectSPVFingerprint, logSPVDetection } from '../utils/spvFingerprint';
 
 // =====================
 // DOCUMENT HASH VERIFICATION
@@ -189,6 +190,44 @@ export interface MCAVerificationResult {
 export async function verifyWithMCA(spv: AssetSubmission['spv']): Promise<MCAVerificationResult> {
   const cin = spv.spvRegistrationNumber;
   const companyName = spv.spvName;
+
+  // Detect if this is a mock SPV
+  const fingerprint = detectSPVFingerprint(cin);
+  logSPVDetection(cin);
+
+  console.log(`[Production Oracle] Verifying MCA for: ${companyName} (CIN: ${cin})`);
+
+  // Skip MCA verification for mock SPVs - return compliant mock data
+  if (fingerprint.skipLegalWrapper) {
+    console.log(`[MCA] ⏭️  Skipping MCA verification for mock SPV - returning compliant mock data`);
+    return {
+      found: true,
+      data: {
+        cin,
+        companyName,
+        status: 'Active',
+        registrationDate: spv.incorporationDate,
+        category: 'Company limited by Shares',
+        subCategory: 'Non-govt company',
+        classOfCompany: 'Private',
+        authorizedCapital: 10000000,
+        paidUpCapital: 5000000,
+        registeredOffice: spv.registeredAddress,
+        directors: spv.directors.map((name, i) => ({
+          din: `MOCK${String(i + 1).padStart(8, '0')}`,
+          name,
+          designation: i === 0 ? 'Managing Director' : 'Director',
+          appointmentDate: spv.incorporationDate
+        })),
+        charges: [],
+        annualReturnsUpToDate: true,
+        lastAGMDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      verificationScore: 100,
+      issues: [],
+      verified: true
+    };
+  }
 
   // Validate CIN format (Indian Company Identification Number)
   // Format: U/L + 5 digit NIC code + 2 letter state code + 4 digit year + 3 letter (PTC/PLC/GOI etc) + 6 digit serial

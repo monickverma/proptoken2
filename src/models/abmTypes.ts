@@ -60,38 +60,38 @@ export interface AssetFinancials {
 
 export interface AssetSubmission {
   id: string;
-  
+
   // Identity & Ownership
   submitterId: string;
   walletAddress: string;
   did?: string;                 // Decentralized ID
   signature: string;
-  
+
   // Asset Information
   category: AssetCategory;
   assetName: string;
   location: AssetLocation;
   specifications: AssetSpecifications;
-  
+
   // SPV Structure
   spv: SPVDetails;
-  
+
   // Proofs & Documents
   registryIds: string[];        // Property registry IDs
   documentUrls: string[];       // Title deeds, etc.
   imageUrls: string[];
   videoUrls: string[];
-  
+
   // Financial Data
   financials: AssetFinancials;
-  
+
   // Valuation
   claimedValue: number;         // Owner's claimed value in INR
-  
+
   // Intent
   tokenizationIntent: string;
   targetRaise: number;          // Amount to raise through tokenization
-  
+
   // Meta
   status: VerificationStatus;
   createdAt: Date;
@@ -122,6 +122,7 @@ export interface RegistrySignal {
   encumbrances: string[];
   lastTransactionDate: string;
   confidence: number;
+  evidenceUrl?: string;
 }
 
 export interface VisionSignal {
@@ -132,6 +133,7 @@ export interface VisionSignal {
   conditionScore: number;       // 0-1
   authenticityScore: number;    // image manipulation detection
   confidence: number;
+  analysisUrl?: string;
 }
 
 export interface ActivitySignal {
@@ -159,7 +161,7 @@ export interface ExistenceVerification {
   vision: VisionSignal;
   activity: ActivitySignal;
   historical: HistoricalSignal;
-  
+
   aggregatedScore: number;      // 0-1
   confidence: number;
   passed: boolean;
@@ -197,7 +199,7 @@ export interface OwnershipVerification {
   didVerification: DIDVerification;
   registryOwnership: RegistryOwnershipCheck;
   reputation: ReputationSignal;
-  
+
   aggregatedProbability: number; // 0-1
   confidence: number;
   passed: boolean;
@@ -222,15 +224,15 @@ export interface NAVCalculation {
   comparablesUsed: number;
   avgPricePerSqFt: number;
   adjustedPricePerSqFt: number;
-  
+
   minNAV: number;
   maxNAV: number;
   meanNAV: number;
   medianNAV: number;
-  
+
   downsideNAV: number;          // 5th percentile
   upsideNAV: number;            // 95th percentile
-  
+
   claimedVsCalculated: number;  // ratio
   confidence: number;
 }
@@ -239,11 +241,11 @@ export interface YieldAnalysis {
   marketMedianYield: number;
   subjectYield: number;
   yieldSpread: number;          // vs market
-  
+
   minYield: number;
   maxYield: number;
   expectedYield: number;
-  
+
   sustainabilityScore: number;  // 0-1
   confidence: number;
 }
@@ -251,13 +253,13 @@ export interface YieldAnalysis {
 export interface CashFlowSimulation {
   simulationRuns: number;
   yearsSimulated: number;
-  
+
   // Monte Carlo Results
   meanAnnualCF: number[];
   medianAnnualCF: number[];
   percentile5CF: number[];
   percentile95CF: number[];
-  
+
   totalCFDistribution: {
     mean: number;
     std: number;
@@ -266,7 +268,7 @@ export interface CashFlowSimulation {
     percentile5: number;
     percentile95: number;
   };
-  
+
   probabilityPositiveCF: number;
   breakEvenYear: number | null;
 }
@@ -276,21 +278,21 @@ export interface RiskSimulation {
   vacancyRiskScore: number;     // 0-100
   expectedVacancyRate: number;
   worstCaseVacancy: number;
-  
+
   // Market Risk
   marketVolatility: number;     // 0-100
   correlationToIndex: number;
   betaCoefficient: number;
-  
+
   // Interest Rate Risk
   interestRateSensitivity: number;
   durationYears: number;
-  
+
   // Liquidity Risk
   liquidityScore: number;       // 0-100
   estimatedTimeToSell: number;  // days
   marketDepth: number;          // 0-1
-  
+
   // Stress Test Results
   stressTests: {
     scenario: string;
@@ -298,7 +300,7 @@ export interface RiskSimulation {
     cfImpact: number;           // % change
     probability: number;
   }[];
-  
+
   // Tail Risk
   var95: number;                // Value at Risk 95%
   var99: number;                // Value at Risk 99%
@@ -311,19 +313,19 @@ export interface ABMAnalysis {
   comparables: MarketComparable[];
   nav: NAVCalculation;
   yield: YieldAnalysis;
-  
+
   // Simulations
   cashFlowSimulation: CashFlowSimulation;
   riskSimulation: RiskSimulation;
-  
+
   // Summary Metrics
   overallRiskScore: number;     // 0-100
   investabilityScore: number;   // 0-100
   marketFitScore: number;       // 0-100
-  
+
   confidence: number;
   passed: boolean;
-  
+
   timestamp: Date;
 }
 
@@ -363,11 +365,11 @@ export interface FraudAnalysis {
   ruleBased: RuleBasedDetection;
   mlBased: MLBasedDetection;
   patterns: PatternDetection;
-  
+
   fraudLikelihood: number;      // 0-100%
   anomalyScore: number;         // count of anomalies
   riskLevel: RiskLevel;
-  
+
   passed: boolean;              // fraud <= 5%
   timestamp: Date;
 }
@@ -393,23 +395,23 @@ export interface ConsensusRuleResult {
 
 export interface ConsensusScore {
   submissionId: string;
-  
+
   // Input Scores
   existenceScore: number;
   ownershipProbability: number;
   activityScore: number;
   fraudLikelihood: number;
   riskScore: number;
-  
+
   // Rule Results
   rules: ConsensusRuleResult[];
   allRulesPassed: boolean;
-  
+
   // Final Decision
   eligible: boolean;
   confidence: number;
   rejectionReason: string | null;
-  
+
   timestamp: Date;
 }
 
@@ -420,33 +422,33 @@ export interface ConsensusScore {
 export interface EligibleAsset {
   id: string;
   submissionId: string;
-  
+
   // Asset Fingerprint
   fingerprint: string;          // hash of all data
-  
+
   // Core Data
   assetName: string;
   category: AssetCategory;
   location: AssetLocation;
   spv: SPVDetails;
-  
+
   // Oracle Attestations
   oracleAttestation: string;    // hash
   existenceScore: number;
   ownershipProbability: number;
-  
+
   // ABM Results
   abmOutputHash: string;
   expectedNAV: { min: number; max: number; mean: number };
   expectedYield: { min: number; max: number; expected: number };
   riskScore: number;
-  
+
   // Fraud Results
   fraudLikelihood: number;
-  
+
   // Consensus
   consensusConfidence: number;
-  
+
   // Cash Flow Claims
   totalTokenSupply: number;
   tokenPrice: number;
@@ -457,7 +459,7 @@ export interface EligibleAsset {
     percentageExposure: number;
     expectedMonthlyCF: number;
   }[];
-  
+
   // Timestamps
   eligibilityTimestamp: Date;
   lastUpdated: Date;
@@ -470,11 +472,11 @@ export interface EligibleAsset {
 export interface VerificationProgress {
   submissionId: string;
   currentStage: VerificationStatus;
-  
+
   stages: {
     submission: { completed: boolean; timestamp?: Date };
-    oracleVerification: { 
-      completed: boolean; 
+    oracleVerification: {
+      completed: boolean;
       timestamp?: Date;
       progress: number;         // 0-100
       subStages: {
@@ -512,7 +514,7 @@ export interface VerificationProgress {
       confidence?: number;
     };
   };
-  
+
   logs: {
     timestamp: Date;
     stage: string;

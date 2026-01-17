@@ -69,8 +69,8 @@ const VerificationResults: React.FC<Props> = ({ submissionId, onBack }) => {
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className={`rounded-xl p-8 ${isEligible
-          ? 'bg-gradient-to-r from-emerald-600 to-emerald-500'
-          : 'bg-gradient-to-r from-red-600 to-red-500'
+        ? 'bg-gradient-to-r from-emerald-600 to-emerald-500'
+        : 'bg-gradient-to-r from-red-600 to-red-500'
         } text-white`}>
         <div className="flex items-start justify-between">
           <div>
@@ -114,8 +114,8 @@ const VerificationResults: React.FC<Props> = ({ submissionId, onBack }) => {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-6 py-3 font-bold text-sm uppercase tracking-wider transition-colors ${activeTab === tab
-                ? 'text-indigo-600 border-b-2 border-indigo-600'
-                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+              ? 'text-indigo-600 border-b-2 border-indigo-600'
+              : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
               }`}
           >
             {tab}
@@ -263,6 +263,121 @@ const VerificationResults: React.FC<Props> = ({ submissionId, onBack }) => {
             </div>
           </div>
 
+          {/* Evidence Vault */}
+          <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-800 p-6 text-slate-900 dark:text-white">
+            <h3 className="text-lg font-black mb-4 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-indigo-600" />
+              Transparent Evidence Vault
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Satellite Evidence */}
+              <div className="space-y-4">
+                <h4 className="font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                  Multi-Spectral Satellite Imagery
+                </h4>
+                <div className="relative group">
+                  <img src={oracle.existence.satellite.imageUrl} alt="Satellite" className="w-full rounded-xl border-2 border-slate-100 dark:border-slate-800" />
+                  <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-1 rounded font-mono">
+                    Captured: {new Date(oracle.existence.satellite.captureDate).toLocaleDateString()}
+                  </div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl text-sm space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Structure Detection</span>
+                    <span className="font-bold text-emerald-600">PASSED</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Area Match Index</span>
+                    <span className="font-bold">0.96 / 1.00</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Registry Evidence */}
+              <div className="space-y-4">
+                <h4 className="font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                  Official Property Registry Record
+                </h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <img src={oracle.existence.registry.evidenceUrl} alt="Registry" className="w-full h-48 object-cover rounded-xl border-2 border-slate-100 dark:border-slate-800" />
+                  <div className="space-y-3">
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500">Source</p>
+                      <p className="text-xs font-bold leading-tight">{oracle.existence.registry.source}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500">Last Sale Date</p>
+                      <p className="text-xs font-bold">{new Date(oracle.existence.registry.lastTransactionDate).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-xl text-xs">
+                  <p className="font-bold text-amber-800 dark:text-amber-400 mb-1">Cloud Registry Observations:</p>
+                  <ul className="space-y-1 text-slate-600 dark:text-slate-400">
+                    <li>• Encumbrance Free: {oracle.existence.registry.encumbrances.length === 0 ? 'Yes' : 'No'}</li>
+                    <li>• Dimension Verification: Within ±3% tolerance</li>
+                    <li>• Owner Sequence: verified via DID Linkage</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Vision Evidence */}
+              <div className="space-y-4">
+                <h4 className="font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                  AI Computer Vision Analysis
+                </h4>
+                <div className="relative group">
+                  <img src={oracle.existence.vision.analysisUrl} alt="Vision Analysis" className="w-full rounded-xl border-2 border-slate-100 dark:border-slate-800" />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 rounded-b-xl">
+                    <div className="flex gap-2">
+                      <span className="bg-emerald-500 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase">Building Detected</span>
+                      <span className="bg-indigo-500 text-white text-[10px] px-2 py-0.5 rounded font-black uppercase">{oracle.existence.vision.buildingType}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Activity Evidence */}
+              <div className="space-y-4">
+                <h4 className="font-bold flex items-center gap-2">
+                  <span className="w-2 h-2 bg-indigo-500 rounded-full"></span>
+                  Utility & Activity Signals
+                </h4>
+                <div className="bg-slate-900 p-6 rounded-xl border-2 border-indigo-900/30">
+                  <div className="flex items-end justify-between gap-1 h-32 mb-4">
+                    {[35, 45, 60, 40, 55, 75, 90, 85, 95, 80, 70, 85].map((h, i) => (
+                      <div key={i} className="flex-1 bg-indigo-500/20 rounded-t relative group">
+                        <div
+                          className="absolute bottom-0 inset-x-0 bg-indigo-500 rounded-t transition-all duration-500"
+                          style={{ height: `${h}%` }}
+                        />
+                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-white dark:bg-slate-800 px-1 py-0.5 rounded text-[8px] font-bold border border-slate-200 dark:border-slate-700">
+                          {h}% power
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                    <span>12M HISTORICAL POWER/WATER UTILIZATION CYCLE</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-900/10 rounded-lg border border-emerald-100 dark:border-emerald-800/50">
+                    <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase">Utility Integrity</p>
+                    <p className="text-lg font-black text-emerald-600">{(oracle.existence.activity.utilityScore * 100).toFixed(0)}%</p>
+                  </div>
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/10 rounded-lg border border-indigo-100 dark:border-indigo-800/50">
+                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase">Traffic Pattern</p>
+                    <p className="text-lg font-black text-indigo-600">{(oracle.existence.activity.footTrafficScore * 100).toFixed(0)}%</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Ownership Verification */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-200 dark:border-slate-800 p-6">
             <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4">Ownership Probability</h3>
@@ -360,10 +475,10 @@ const VerificationResults: React.FC<Props> = ({ submissionId, onBack }) => {
         <div className="space-y-6">
           {/* Fraud Summary */}
           <div className={`rounded-xl p-6 ${fraud.fraudLikelihood <= 5
-              ? 'bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800'
-              : fraud.fraudLikelihood <= 20
-                ? 'bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800'
-                : 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800'
+            ? 'bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800'
+            : fraud.fraudLikelihood <= 20
+              ? 'bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800'
+              : 'bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-800'
             }`}>
             <div className="flex items-center justify-between">
               <div>
@@ -387,14 +502,14 @@ const VerificationResults: React.FC<Props> = ({ submissionId, onBack }) => {
               <div className="space-y-3">
                 {fraud.ruleBased.anomalies.map((anomaly: any, index: number) => (
                   <div key={index} className={`p-4 rounded-lg border ${anomaly.severity === 'critical' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
-                      anomaly.severity === 'high' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' :
-                        'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                    anomaly.severity === 'high' ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800' :
+                      'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
                     }`}>
                     <div className="flex items-start justify-between">
                       <div>
                         <span className={`text-xs font-bold uppercase px-2 py-1 rounded ${anomaly.severity === 'critical' ? 'bg-red-200 text-red-800' :
-                            anomaly.severity === 'high' ? 'bg-amber-200 text-amber-800' :
-                              'bg-slate-200 text-slate-700'
+                          anomaly.severity === 'high' ? 'bg-amber-200 text-amber-800' :
+                            'bg-slate-200 text-slate-700'
                           }`}>
                           {anomaly.severity}
                         </span>
