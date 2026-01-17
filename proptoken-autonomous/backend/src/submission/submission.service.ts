@@ -1,154 +1,193 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CreateSubmissionDto, AssetCategory } from './dto/create-submission.dto';
-import { SubmissionResponseDto } from './dto/submission-response.dto';
-import { v4 as uuidv4 } from 'uuid';
-import { OracleService } from '../oracle/oracle.service';
-import { ABMService } from '../abm/abm.service';
-import { ConsensusService } from '../consensus/consensus.service';
-import { RegistryService } from '../registry/registry.service';
-import { LegalWorkflowOrchestrator } from '../legal-workflow/legal-workflow.orchestrator';
+import { ABMService, ABMAsset, ABMScore } from '../abm/abm.service';
+import { ethers } from 'ethers';
+
+export interface MockSPV {
+  id: string;
+  name: string;
+  address: string;
+  longitude: number;
+  latitude: number;
+  assetCategory: string;
+  satImageUrl: string;
+  registryData?: Record<string, any>;
+  timestamp: number;
+}
+
+export interface SubmissionResult {
+  submissionId: string;
+  spv: MockSPV;
+  abmScore: ABMScore;
+  assetFingerprint: string; // Merkle root
+  passed: boolean;
+  nextStep: 'READY_FOR_TOKEN_MINT' | 'VERIFICATION_FAILED';
+  message: string;
+}
 
 @Injectable()
 export class SubmissionService {
-    private readonly logger = new Logger(SubmissionService.name);
+  private readonly logger = new Logger(SubmissionService.name);
+  private submissions: Map<string, SubmissionResult> = new Map();
 
-    // In-memory store
-    private submissions = new Map<string, any>();
+  constructor(private abmService: ABMService) {}
 
-    constructor(
-        private readonly oracleService: OracleService,
-        private readonly abmService: ABMService,
-        private readonly consensusService: ConsensusService,
-        private readonly registryService: RegistryService,
-        private readonly legalWorkflowOrchestrator: LegalWorkflowOrchestrator,
-    ) { }
+  /**
+   * Submit mock SPV for verification
+   * Includes satellite imagery, coordinates, and registry mock data
+   */
+  async submitMockSPV(input: {
+    name: string;
+    address: string;
+    longitude: number;
+    latitude: number;
+    assetCategory?: string;
+  }): Promise<SubmissionResult> {
+    const submissionId = ethers.id(`${input.name}-${Date.now()}`);
+    this.logger.log(`[Submission] New SPV submission: ${submissionId}`);
 
-    async create(createSubmissionDto: CreateSubmissionDto): Promise<SubmissionResponseDto> {
-        const isMock = createSubmissionDto.category === AssetCategory.TEST || (createSubmissionDto.location?.city || '').includes('Mock');
-        const submissionId = isMock ? `MOCK-${uuidv4()}` : uuidv4();
-        const timestamp = new Date().toISOString();
+    // Step 1: Create mock SPV entity
+    const spv = this.createMockSPV(input, submissionId);
+    this.logger.log(`[Submission] Mock SPV created: ${spv.name} at (${spv.latitude}, ${spv.longitude})`);
 
-        // Deterministic mock fingerprint if isMock
-        const mockFingerprint = isMock ? '0x74657374' + uuidv4().replace(/-/g, '') : null;
+    // Step 2: Fetch satellite imagery
+    const satImageUrl = this.generateSatelliteImageUrl(spv.longitude, spv.latitude);
+    spv.satImageUrl = satImageUrl;
+    this.logger.log(`[Submission] Satellite imagery URL: ${satImageUrl}`);
 
-        const submission = {
-            id: submissionId,
-            ...createSubmissionDto,
-            status: 'RECEIVED',
-            timestamp,
-            isMock,
-            mockFingerprint, // Store likely fingerprint for verification
-            verificationStatus: {
-                oracle: 'PENDING',
-                abm: 'PENDING',
-                consensus: 'PENDING',
-                legal: 'PENDING'
-            },
-            results: {
-                oracle: null,
-                abm: null,
-                consensus: null
-            }
-        };
+    // Step 3: Generate registry mock data
+    spv.registryData = this.generateRegistryMockData(input);
+    this.logger.log(`[Submission] Registry mock data generated`);
 
-        this.submissions.set(submissionId, submission);
-        this.logger.log(`Submission received: ${submissionId}`);
+    // Step 4: Run ABM scoring
+    const abmAsset: ABMAsset = {
+      id: submissionId,
+      address: spv.address,
+      longitude: spv.longitude,
+      latitude: spv.latitude,
+      name: spv.name,
+      category: 'TEST', // Mock SPV category
+      satImageUrl: satImageUrl
+    };
 
-        // Trigger async verification
-        this.startVerificationProcess(submissionId);
+    const abmScore = await this.abmService.scoreAsset(abmAsset);
+    this.logger.log(
+      `[Submission] ABM Score: ${(abmScore.overallScore * 100).toFixed(0)}% (pass=${abmScore.passes})`
+    );
 
-        return {
-            submissionId,
-            status: 'RECEIVED',
-            timestamp
-        };
-    }
+    // Step 5: Generate asset fingerprint (Merkle root)
+    const assetFingerprint = this.generateAssetFingerprint(spv);
+    this.logger.log(`[Submission] Asset fingerprint: ${assetFingerprint}`);
 
-    getSubmission(id: string) {
-        return this.submissions.get(id);
-    }
+    // Step 6: Compile result
+    const result: SubmissionResult = {
+      submissionId,
+      spv,
+      abmScore,
+      assetFingerprint,
+      passed: abmScore.passes,
+      nextStep: abmScore.passes ? 'READY_FOR_TOKEN_MINT' : 'VERIFICATION_FAILED',
+      message: abmScore.passes
+        ? `✅ SPV "${spv.name}" verified successfully (Score: ${(abmScore.overallScore * 100).toFixed(0)}%). Ready for token minting.`
+        : `❌ SPV "${spv.name}" failed verification (Score: ${(abmScore.overallScore * 100).toFixed(0)}%). Below 40% threshold.`
+    };
 
-    getAll() {
-        return Array.from(this.submissions.values());
-    }
+    // Store submission
+    this.submissions.set(submissionId, result);
 
-    // Orchestrator method
-    private async startVerificationProcess(id: string) {
-        this.logger.log(`Starting verification for ${id}...`);
-        const submission = this.submissions.get(id);
-        if (!submission) return;
+    this.logger.log(`[Submission] Result stored: ${result.nextStep}`);
+    return result;
+  }
 
-        try {
-            // 1. Oracle Verification
-            this.updateStatus(id, 'oracle', 'IN_PROGRESS');
-            const oracleResult = await this.oracleService.verify(submission);
+  /**
+   * Create mock SPV entity
+   */
+  private createMockSPV(
+    input: any,
+    id: string
+  ): MockSPV {
+    return {
+      id,
+      name: input.name,
+      address: input.address || `MOCK_SPV_${id.slice(0, 8)}`,
+      longitude: input.longitude,
+      latitude: input.latitude,
+      assetCategory: input.assetCategory || 'COMMERCIAL_REAL_ESTATE',
+      satImageUrl: '', // Will be set later
+      timestamp: Date.now()
+    };
+  }
 
-            submission.results.oracle = oracleResult;
-            this.updateStatus(id, 'oracle', 'DONE');
-            this.logger.log(`Oracle verification complete for ${id}`);
+  /**
+   * Generate Yandex Static Maps URL for satellite imagery
+   * Free tier endpoint - no API key required for basic usage
+   */
+  private generateSatelliteImageUrl(longitude: number, latitude: number): string {
+    // Yandex Static Maps API
+    // Returns 450x450 satellite imagery at zoom level 18 (street level)
+    return `https://static-maps.yandex.ru/1.x/?ll=${longitude},${latitude}&z=18&size=450,450&layer=sat&lang=en`;
+  }
 
-            // 2. ABM Analysis
-            this.updateStatus(id, 'abm', 'IN_PROGRESS');
+  /**
+   * Generate mock registry data
+   * Simulates MCA (Ministry of Corporate Affairs) response
+   */
+  private generateRegistryMockData(input: any): Record<string, any> {
+    return {
+      registryId: `REG_${ethers.id(input.address).slice(0, 16)}`,
+      entityName: input.name,
+      entityType: 'Special Purpose Vehicle (SPV)',
+      registrationDate: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year ago
+      status: 'ACTIVE',
+      address: input.address,
+      coordinates: {
+        latitude: input.latitude,
+        longitude: input.longitude,
+        verified: true
+      },
+      documentHash: ethers.id(JSON.stringify(input)),
+      verificationMethod: 'SATELLITE_IMAGERY + MOCK_REGISTRY',
+      confidence: 0.95
+    };
+  }
 
-            const abmMarket = await this.abmService.analyzeMarket(
-                { specifications: submission.specifications, type: submission.category },
-                submission.location,
-                submission.financials,
-                oracleResult
-            );
+  /**
+   * Generate cryptographic asset fingerprint
+   * In production: This would be a Merkle root of all asset data
+   * For now: Hash of SPV data
+   */
+  private generateAssetFingerprint(spv: MockSPV): string {
+    const dataToHash = JSON.stringify({
+      name: spv.name,
+      address: spv.address,
+      longitude: spv.longitude,
+      latitude: spv.latitude,
+      timestamp: spv.timestamp,
+      satImageUrl: spv.satImageUrl
+    });
 
-            const abmFraud = await this.abmService.analyzeFraud(
-                { specifications: submission.specifications, type: submission.category },
-                submission.financials,
-                oracleResult
-            );
+    return ethers.id(dataToHash);
+  }
 
-            submission.results.abm = { market: abmMarket, fraud: abmFraud };
-            this.updateStatus(id, 'abm', 'DONE');
-            this.logger.log(`ABM analysis complete for ${id}`);
+  /**
+   * Retrieve submission by ID
+   */
+  getSubmission(submissionId: string): SubmissionResult | undefined {
+    return this.submissions.get(submissionId);
+  }
 
-            // 3. Consensus
-            this.updateStatus(id, 'consensus', 'CALCULATING');
+  /**
+   * List all submissions (for dashboard)
+   */
+  listSubmissions(): SubmissionResult[] {
+    return Array.from(this.submissions.values());
+  }
 
-            const consensusResult = this.consensusService.calculateScore(oracleResult, { market: abmMarket, fraud: abmFraud });
-
-            submission.results.consensus = consensusResult;
-            this.updateStatus(id, 'consensus', consensusResult.eligible ? 'ELIGIBLE' : 'REJECTED');
-
-            submission.status = consensusResult.eligible ? 'VERIFIED' : 'REJECTED';
-            this.submissions.set(id, submission);
-
-            this.logger.log(`Consensus reached for ${id}: ${consensusResult.eligible ? 'ELIGIBLE' : 'REJECTED'}`);
-
-            // 4. Registry & Legal Workflow
-            if (consensusResult.eligible) {
-                await this.registryService.registerAsset(id, consensusResult, submission);
-
-                // Trigger STEP 2: Legal Wrapper Workflow
-                this.logger.log(`Triggering Legal Workflow for asset ${id}`);
-                this.updateStatus(id, 'legal', 'IN_PROGRESS');
-
-                const workflowId = await this.legalWorkflowOrchestrator.startWorkflow(id);
-
-                // In a real system, we'd poll or use events. 
-                // Here we'll just check if it's completed for the mock.
-                const status = this.legalWorkflowOrchestrator.getWorkflowStatus(workflowId);
-                if (status && status.status === 'COMPLETED') {
-                    this.updateStatus(id, 'legal', 'DONE');
-                }
-            }
-
-        } catch (error) {
-            this.logger.error(`Verification failed for ${id}`, error);
-            this.updateStatus(id, 'oracle', 'FAILED');
-        }
-    }
-
-    private updateStatus(id: string, stage: string, status: string) {
-        const submission = this.submissions.get(id);
-        if (submission) {
-            submission.verificationStatus[stage] = status;
-            this.submissions.set(id, submission);
-        }
-    }
+  /**
+   * Get verified submissions ready for token minting
+   */
+  getVerifiedSubmissions(): SubmissionResult[] {
+    return Array.from(this.submissions.values()).filter(
+      result => result.nextStep === 'READY_FOR_TOKEN_MINT'
+    );
+  }
 }
