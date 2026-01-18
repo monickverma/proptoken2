@@ -48,7 +48,7 @@ export class TokenMinterService {
       // Sepolia testnet endpoint
       const sepoliaRpc = process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY';
       this.provider = new ethers.JsonRpcProvider(sepoliaRpc);
-      
+
       // Use wallet from environment (PRIVATE_KEY_SEPOLIA)
       const privateKey = process.env.PRIVATE_KEY_SEPOLIA;
       if (!privateKey) {

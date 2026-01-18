@@ -1,0 +1,3 @@
+{
+    "query": "mutation { submitMockSPV(name: \"Test SPV\", address: \"123 Mock St\", longitude: 77.5, latitude: 12.9) { submissionId } }"
+}

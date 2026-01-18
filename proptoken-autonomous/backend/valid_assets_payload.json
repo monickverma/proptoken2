@@ -1,0 +1,116 @@
+{
+    "samples": [
+        {
+            "description": "Luxury Villa in Goa (Mock Bypass)",
+            "query": "mutation { submitMockSPV(input: { spvName: \"Seaside Villa Goa\", location: { address: \"101 Ocean Drive\", city: \"Goa\", state: \"GA\", country: \"India\", coordinates: { lat: 15.2993, lng: 74.1240 } }, category: \"TEST\", financials: { valuation: 25000000, expectedReturn: 12.5 } }) { id status message } }"
+        },
+        {
+            "description": "Tech Park in Bangalore (Commercial)",
+            "query": "mutation { submitMockSPV(input: { spvName: \"Tech Park One\", location: { address: \"42 Electronics City\", city: \"Bangalore\", state: \"KA\", country: \"India\", coordinates: { lat: 12.9716, lng: 77.5946 } }, category: \"TEST\", financials: { valuation: 150000000, expectedReturn: 15.0 } }) { id status message } }"
+        },
+        {
+            "description": "Downtown Apartment (Residential)",
+            "query": "mutation { submitMockSPV(input: { spvName: \"Skyline Apartment 4B\", location: { address: \"88 High St\", city: \"Mumbai\", state: \"MH\", country: \"India\", coordinates: { lat: 19.0760, lng: 72.8777 } }, category: \"TEST\", financials: { valuation: 50000000, expectedReturn: 8.5 } }) { id status message } }"
+        },
+        {
+            "description": "Warehouse in Delhi (Industrial)",
+            "query": "mutation { submitMockSPV(input: { spvName: \"North Logistics Hub\", location: { address: \"Sector 5, Industrial Area\", city: \"Delhi\", state: \"DL\", country: \"India\", coordinates: { lat: 28.7041, lng: 77.1025 } }, category: \"TEST\", financials: { valuation: 80000000, expectedReturn: 10.2 } }) { id status message } }"
+        },
+        {
+            "description": "Solar Farm (Infrastructure)",
+            "query": "mutation { submitMockSPV(input: { spvName: \"Rajasthan Solar Unit 1\", location: { address: \"Desert Road Km 20\", city: \"Jaipur\", state: \"RJ\", country: \"India\", coordinates: { lat: 26.9124, lng: 75.7873 } }, category: \"TEST\", financials: { valuation: 45000000, expectedReturn: 18.0 } }) { id status message } }"
+        }
+    ],
+    "raw_json_input_format": [
+        {
+            "spvName": "Seaside Villa Goa",
+            "location": {
+                "address": "101 Ocean Drive",
+                "city": "Goa",
+                "state": "GA",
+                "country": "India",
+                "coordinates": {
+                    "lat": 15.2993,
+                    "lng": 74.1240
+                }
+            },
+            "category": "TEST",
+            "financials": {
+                "valuation": 25000000,
+                "expectedReturn": 12.5
+            }
+        },
+        {
+            "spvName": "Tech Park One",
+            "location": {
+                "address": "42 Electronics City",
+                "city": "Bangalore",
+                "state": "KA",
+                "country": "India",
+                "coordinates": {
+                    "lat": 12.9716,
+                    "lng": 77.5946
+                }
+            },
+            "category": "TEST",
+            "financials": {
+                "valuation": 150000000,
+                "expectedReturn": 15.0
+            }
+        },
+        {
+            "spvName": "Skyline Apartment 4B",
+            "location": {
+                "address": "88 High St",
+                "city": "Mumbai",
+                "state": "MH",
+                "country": "India",
+                "coordinates": {
+                    "lat": 19.0760,
+                    "lng": 72.8777
+                }
+            },
+            "category": "TEST",
+            "financials": {
+                "valuation": 50000000,
+                "expectedReturn": 8.5
+            }
+        },
+        {
+            "spvName": "North Logistics Hub",
+            "location": {
+                "address": "Sector 5, Industrial Area",
+                "city": "Delhi",
+                "state": "DL",
+                "country": "India",
+                "coordinates": {
+                    "lat": 28.7041,
+                    "lng": 77.1025
+                }
+            },
+            "category": "TEST",
+            "financials": {
+                "valuation": 80000000,
+                "expectedReturn": 10.2
+            }
+        },
+        {
+            "spvName": "Rajasthan Solar Unit 1",
+            "location": {
+                "address": "Desert Road Km 20",
+                "city": "Jaipur",
+                "state": "RJ",
+                "country": "India",
+                "coordinates": {
+                    "lat": 26.9124,
+                    "lng": 75.7873
+                }
+            },
+            "category": "TEST",
+            "financials": {
+                "valuation": 45000000,
+                "expectedReturn": 18.0
+            }
+        }
+    ]
+}

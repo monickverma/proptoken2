@@ -1,0 +1,13 @@
+{
+  "network": "baseSepolia",
+  "chainId": 84532,
+  "assetRegistry": "0x61bfab5D232429512c4D183a05Ec22F7e64B1562",
+  "deployer": "0xfcb30e4B39e0e68E84f59A92d851087f4416b8d1",
+  "deploymentTxHash": "0xf5b93b8d582a4e487d1a25bb6c15ae05588145b143e08765ff270f111ea5d5d4",
+  "timestamp": "2026-01-17T22:42:03.927Z",
+  "explorerUrl": "https://sepolia.basescan.org/address/0x2feD68a1B753395d1BD4899438d9A37A21176cC4",
+  "transactionUrl": "https://sepolia.basescan.org/tx/0xe4332e8513eeaaae4a553cb76358518df2dec3ab04a5c461e51efa9a733660a9",
+  "rwaSecurityToken": "0x2feD68a1B753395d1BD4899438d9A37A21176cC4",
+  "tokenName": "PropToken RWA Test",
+  "tokenSymbol": "PRWA"
+}
