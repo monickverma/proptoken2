@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "vite build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/:route(auth|assets|account|abm|fractional|swap|pay|yield|wallet|verify|collateral)/:rest*",
+      "destination": "/api"
+    }
+  ]
+}

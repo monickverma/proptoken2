@@ -117,7 +117,12 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`PropToken Protocol active on port ${PORT}`);
-  console.log(`ABM & Asset Intelligence Layer available at /abm`);
-});
+// On Vercel the app runs as a serverless function (api/index.ts); listen only when run directly.
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`PropToken Protocol active on port ${PORT}`);
+    console.log(`ABM & Asset Intelligence Layer available at /abm`);
+  });
+}
+
+export default app;
