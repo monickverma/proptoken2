@@ -141,7 +141,7 @@ const InvestorDashboard: React.FC = () => {
                                         </td>
                                         <td className="text-right py-4 px-4">
                                             <button
-                                                onClick={() => navigate(`/trade/${holding.tokenAddress}`)}
+                                                onClick={() => navigate(`/market/${holding.tokenAddress}`)}
                                                 className="bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2 rounded-lg hover:opacity-80 transition-opacity"
                                             >
                                                 Trade

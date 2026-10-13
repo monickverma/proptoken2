@@ -62,7 +62,7 @@ export const MintTokens: React.FC<MintTokensProps> = ({ assetId, pricePerToken, 
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
             <div className="flex justify-between items-center">
                 <h3 className="font-bold text-slate-900 dark:text-slate-100">Mint Tokens</h3>
-                <span className="text-xs font-mono text-slate-400">Bal: ₹{wallet.balance.toLocaleString()}</span>
+                <span className="text-xs font-mono text-slate-400">Bal: ₹{(wallet?.stablecoinBalance ?? 0).toLocaleString()}</span>
             </div>
 
             <div className="space-y-2">

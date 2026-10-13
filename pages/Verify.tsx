@@ -40,10 +40,11 @@ const Verify: React.FC = () => {
             <Search className="absolute left-4 top-4 w-5 h-5 text-slate-400 dark:text-slate-500" />
             <input 
               type="text" 
-              placeholder="Enter Asset ID (e.g. prop-001)"
+              placeholder="Enter Asset ID or name (e.g. ASSET-GGM-001)"
               className="w-full pl-12 pr-4 py-4 rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-transparent dark:text-slate-100 focus:border-indigo-600 outline-none transition-all font-bold"
               value={assetId}
               onChange={e => setAssetId(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleVerify(); }}
             />
           </div>
           <button 

@@ -15,8 +15,6 @@ import Swap from './pages/Swap';
 import Pay from './pages/Pay';
 import Account from './pages/Account';
 import ABM from './pages/ABM';
-import AutonomousVerification from './pages/AutonomousVerification';
-import AssetSubmissionForm from './components/autonomous/AssetSubmissionForm';
 import InvestorDashboard from './pages/InvestorDashboard';
 import IssuerDashboard from './pages/IssuerDashboard';
 import TokenDetail from './pages/TokenDetail';
@@ -53,9 +51,10 @@ const App: React.FC = () => {
           {/* ABM & Asset Intelligence Layer - Public Access */}
           <Route path="/abm" element={<ABM />} />
 
-          {/* Autonomous Asset Onboarding (Legacy Integration) */}
-          <Route path="/autonomous/submit" element={<ProtectedRoute><AssetSubmissionForm /></ProtectedRoute>} />
-          <Route path="/autonomous/verify/:id" element={<ProtectedRoute><AutonomousVerification /></ProtectedRoute>} />
+          {/* Autonomous Asset Onboarding: the legacy pages called a separate local-only service
+              (localhost:3001), so both routes now open the ABM flow, which uses the deployed API. */}
+          <Route path="/autonomous/submit" element={<Navigate to="/abm" replace />} />
+          <Route path="/autonomous/verify/:id" element={<Navigate to="/abm" replace />} />
 
           {/* Step 5: Application & Market Layer */}
           <Route path="/investor" element={<ProtectedRoute><InvestorDashboard /></ProtectedRoute>} />
