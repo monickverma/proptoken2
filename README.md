@@ -13,9 +13,9 @@ Real-world-asset (RWA) tokenization prototype: an asset is submitted, scored by 
 
 | Part | Path | Stack | What it does |
 |---|---|---|---|
-| Smart contracts | `proptoken-autonomous/contracts/src` | Solidity 0.8.20, Foundry, OpenZeppelin 5.5 | Asset registry, ERC-3643-style security token, token factory, ERC-7540-style async redemption, Merkle attestation verifier. 21 Foundry tests. |
+| Smart contracts | `proptoken-autonomous/contracts/src` | Solidity 0.8.20, Foundry, OpenZeppelin 5.5 | Asset registry, ERC-3643-style security token, token factory, ERC-7540-style async redemption, Merkle attestation verifier. 23 Foundry tests. |
 | Deployed snapshot | `proptoken-autonomous/contracts/contracts` | Hardhat | The sources that were deployed to Base Sepolia (see [Deployments](#deployments)). |
-| Oracle node | `oracle-network/` | Go, go-ethereum | HTTP `/verify`: runs existence + ownership checks, commits to the signals with a hash, signs the commitment with secp256k1 ECDSA, and can push the result to `AssetRegistry.registerAsset`. |
+| Oracle node | `oracle-network/` | Go, go-ethereum | HTTP `/verify`: runs existence + ownership checks, commits to each signal as a leaf of a keccak256 Merkle tree, returns an inclusion proof per signal, signs the root with secp256k1 ECDSA, and can push the result to `AssetRegistry.registerAsset`. |
 | Oracle stub | `proptoken-autonomous/oracle-network/` | Go (stdlib) | Fixed-score `/verify/{existence,ownership,activity}` endpoints, started by Docker Compose. The current submission flow doesn't call it. |
 | Verification backend | `proptoken-autonomous/backend` | NestJS, GraphQL (Apollo) | REST `POST/GET /submissions`: weighted heuristic scoring in-process and a keccak256 asset fingerprint. GraphQL market queries. |
 | Submission UI | `proptoken-autonomous/frontend` | Next.js 16 | Asset submission form and verification progress page for the backend. |
@@ -38,7 +38,7 @@ flowchart LR
         NEXT["Next.js submission UI"]
         NEST["NestJS backend<br/>REST + GraphQL"]
         STUB["Go oracle stub :8081"]
-        ORACLE["Go oracle node<br/>mocked satellite / vision / MCA<br/>hash commitment + ECDSA signature"]
+        ORACLE["Go oracle node<br/>mocked satellite / vision / MCA<br/>Merkle root + ECDSA signature"]
         ABM["Python ABM engine<br/>(FastAPI)"]
         NEXT -- REST --> NEST
     end
@@ -69,7 +69,7 @@ All in `proptoken-autonomous/contracts/src`, using OpenZeppelin `AccessControl` 
 | `RWASecurityToken` | ERC-20 with ERC-3643-style transfer rules: verified-investor whitelist, frozen wallets, pause, investor cap, forced transfer, NAV and NAV per token. | `MINTER_ROLE`, `COMPLIANCE_ROLE`, `AGENT_ROLE`, `DEFAULT_ADMIN_ROLE` |
 | `TokenFactory` | Deploys a token only for an eligible, untokenized registry asset, marks it tokenized, hands the token roles to the caller and renounces its own. | `FACTORY_ROLE` |
 | `AsyncRedemptionController` | ERC-7540-style request → approve → settle (burn) / cancel (return) flow for illiquid assets; payout happens off-chain. | `OPERATOR_ROLE` |
-| `OracleAttestationVerifier` | Stores attestation Merkle roots and verifies leaves against them with OpenZeppelin `MerkleProof` (sorted-pair keccak256). | `ORACLE_ROLE` (granted/revoked via `authorizeOracle`) |
+| `OracleAttestationVerifier` | Stores attestation Merkle roots and verifies one oracle signal against a root: it recomputes the leaf from the signal's fields and checks the proof with OpenZeppelin `MerkleProof` (sorted-pair keccak256). | `ORACLE_ROLE` (granted/revoked via `authorizeOracle`) |
 
 "ERC-3643-style" and "ERC-7540-style" mean the contracts follow those standards' ideas; they do not implement the full interfaces (no ONCHAINID identity registry, no ERC-4626 vault).
 
@@ -125,6 +125,7 @@ cd proptoken-autonomous/frontend && npm ci && npm run dev        # Next.js on :3
 ```bash
 cd oracle-network
 go run ./cmd/oracle    # :8080, POST /verify
+go test ./...
 ```
 
 Without `ORACLE_PRIVATE_KEY` it signs with a throwaway key generated at startup and stays off-chain. To publish to a registry, set `ORACLE_PRIVATE_KEY`, `BLOCKCHAIN_RPC_URL` and `REGISTRY_CONTRACT_ADDRESS`. The key's address needs `CONSENSUS_ROLE` on a registry built from `src/`.
@@ -141,7 +142,7 @@ docker compose up --build
 This is a hackathon prototype. In particular:
 
 - **Verification inputs are mocked.** The Go oracle's satellite client only builds a Yandex static-map URL (it never fetches or analyses the image), the vision score is random in 0.85–0.99, and the MCA company check always passes. The NestJS satellite check returns a fixed 0.92 for any valid coordinates. The oracle stub returns fixed scores.
-- **The oracle commitment is not a Merkle tree yet.** The Go node hashes the sorted signal hashes together with SHA-256, so it cannot produce inclusion proofs. The on-chain `OracleAttestationVerifier` does verify OpenZeppelin-style Merkle proofs (tested in `test/Contracts.t.sol`), but nothing connects the two yet.
+- **The Merkle root is not stored in the verifier automatically.** The Go node builds a keccak256 sorted-pair Merkle tree over its signals (one leaf per signal: `keccak256(bytes.concat(keccak256(abi.encode(submissionId, category, signal, source, score))))`, the OpenZeppelin `StandardMerkleTree` encoding) and `/verify` returns a proof for each signal. `OracleAttestationVerifier.verifyOracleResult` recomputes that leaf on-chain and checks the proof; `test/Contracts.t.sol` checks a vector generated by the Go code. But the node pushes the root to `AssetRegistry.registerAsset`, not to the verifier, so someone with `ORACLE_ROLE` still has to call `storeAttestation`. Leaves commit to each signal's name, source and score (rounded to 6 decimals, 1e18 scale), not to its raw data or timestamp.
 - **Oracle signatures are not checked on-chain.** The node signs its commitment with ECDSA, but the contracts authorise oracles by role (`msg.sender`), not by recovering a signature.
 - **The Go oracle node targets the `src/` registry ABI**, not the older deployed one, so pushing to the current Base Sepolia registry would revert until `src/` is redeployed.
 - **The demo API and NestJS backend keep data in memory**, and market data on the GraphQL API (`tokens`, `orderBook`, `recentTrades`) is mock data. The GraphQL mock-SPV mutations in `src/api/mutation.resolver.ts` and `MOCK_SPV_FLOW.md` are not registered in a Nest module yet.
