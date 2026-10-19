@@ -9,7 +9,19 @@ export class SubmissionController {
 
     @Post()
     async create(@Body() createSubmissionDto: CreateSubmissionDto): Promise<SubmissionResponseDto> {
-        return this.submissionService.create(createSubmissionDto);
+        const { location, category, specifications } = createSubmissionDto;
+        const result = await this.submissionService.submitMockSPV({
+            name: specifications?.name ?? location.address,
+            address: location.address,
+            longitude: location.coordinates.lng,
+            latitude: location.coordinates.lat,
+            assetCategory: category,
+        });
+        return {
+            submissionId: result.submissionId,
+            status: result.nextStep,
+            timestamp: new Date(result.spv.timestamp).toISOString(),
+        };
     }
 
     @Get(':id')
@@ -23,6 +35,6 @@ export class SubmissionController {
 
     @Get()
     async findAll() {
-        return this.submissionService.getAll();
+        return this.submissionService.listSubmissions();
     }
 }
