@@ -28,19 +28,30 @@ func main() {
     visClient := integrations.NewVisionClient()
     mcaClient := integrations.NewMCAClient("https://mockapi.com", "MOCK_KEY")
     
-    // 3. Init Crypto Signer
+    // 3. Init Crypto Signer + Blockchain Client
+    // The signing key comes only from the environment. Without one, the node runs
+    // off-chain with a throwaway key generated at startup.
     pk := os.Getenv("ORACLE_PRIVATE_KEY")
+    rpcURL := os.Getenv("BLOCKCHAIN_RPC_URL")
+    contractAddr := os.Getenv("REGISTRY_CONTRACT_ADDRESS")
+
+    var signer *crypto.Signer
+    var err error
     if pk == "" {
-        pk = "0x0000000000000000000000000000000000000000000000000000000000000001" // Dev fallback
+        if rpcURL != "" && contractAddr != "" {
+            log.Fatal("ORACLE_PRIVATE_KEY must be set when BLOCKCHAIN_RPC_URL and REGISTRY_CONTRACT_ADDRESS are set")
+        }
+        signer, err = crypto.NewEphemeralSigner()
+        if err == nil {
+            log.Printf("Warning: ORACLE_PRIVATE_KEY not set; signing with ephemeral key %s (off-chain only)", signer.Address())
+        }
+    } else {
+        signer, err = crypto.NewSigner(pk)
     }
-    signer, err := crypto.NewSigner(pk)
     if err != nil {
         log.Fatal("Failed to init signer:", err)
     }
-    
-    // 3b. Init Blockchain Client
-    rpcURL := os.Getenv("BLOCKCHAIN_RPC_URL")
-    contractAddr := os.Getenv("REGISTRY_CONTRACT_ADDRESS")
+
     var chainClient *blockchain.Client
     if rpcURL != "" && contractAddr != "" {
         client, err := blockchain.NewClient(rpcURL, pk, contractAddr)

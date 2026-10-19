@@ -1,8 +1,8 @@
 
 import * as express from 'express';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../config/jwt';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
 
 export interface AuthRequest extends express.Request {
   user?: {
@@ -27,7 +27,7 @@ export const requireAuth = (req: express.Request, res: express.Response, next: e
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string };
+    const decoded = jwt.verify(token, getJwtSecret()) as { id: string; email: string };
     (req as AuthRequest).user = decoded;
     next();
   } catch (err) {

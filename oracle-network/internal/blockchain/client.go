@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -31,7 +32,7 @@ func NewClient(rpcURL, privateKeyHex, contractAddr string) (*Client, error) {
 		return nil, fmt.Errorf("failed to get chain id: %v", err)
 	}
 
-	pk, err := crypto.HexToECDSA(privateKeyHex[2:]) // Remove 0x
+	pk, err := crypto.HexToECDSA(strings.TrimPrefix(privateKeyHex, "0x"))
 	if err != nil {
 		return nil, fmt.Errorf("invalid private key: %v", err)
 	}

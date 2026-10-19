@@ -3,6 +3,7 @@ package crypto
 import (
     "crypto/ecdsa"
     "fmt"
+    "strings"
     "github.com/ethereum/go-ethereum/common/hexutil"
     "github.com/ethereum/go-ethereum/crypto"
 )
@@ -12,11 +13,25 @@ type Signer struct {
 }
 
 func NewSigner(privateKeyHex string) (*Signer, error) {
-    privateKey, err := crypto.HexToECDSA(privateKeyHex[2:]) // Remove 0x
+    privateKey, err := crypto.HexToECDSA(strings.TrimPrefix(privateKeyHex, "0x"))
     if err != nil {
         return nil, err
     }
     return &Signer{PrivateKey: privateKey}, nil
+}
+
+// NewEphemeralSigner generates a random key for local, off-chain runs.
+func NewEphemeralSigner() (*Signer, error) {
+    privateKey, err := crypto.GenerateKey()
+    if err != nil {
+        return nil, err
+    }
+    return &Signer{PrivateKey: privateKey}, nil
+}
+
+// Address returns the Ethereum address of the signing key.
+func (s *Signer) Address() string {
+    return crypto.PubkeyToAddress(s.PrivateKey.PublicKey).Hex()
 }
 
 // SignAttestation signs the (Root + SubmissionID) hash
