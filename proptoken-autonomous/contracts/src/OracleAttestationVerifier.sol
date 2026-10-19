@@ -60,7 +60,11 @@ contract OracleAttestationVerifier is AccessControl {
         onlyRole(DEFAULT_ADMIN_ROLE) 
     {
         authorizedOracles[oracle] = authorized;
-        _grantRole(ORACLE_ROLE, oracle);
+        if (authorized) {
+            _grantRole(ORACLE_ROLE, oracle);
+        } else {
+            _revokeRole(ORACLE_ROLE, oracle);
+        }
         emit OracleAuthorized(oracle, authorized);
     }
 }
