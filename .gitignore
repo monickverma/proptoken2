@@ -38,7 +38,6 @@ yarn-error.log*
 proptoken-autonomous/contracts/cache/
 proptoken-autonomous/contracts/out/
 proptoken-autonomous/contracts/broadcast/
-proptoken-autonomous/contracts/lib/
 
 # Go
 oracle-network/vendor/
