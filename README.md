@@ -7,19 +7,19 @@ Real-world-asset (RWA) tokenization prototype: an asset is submitted, scored by 
 [![CI](https://github.com/monickverma/proptoken2/actions/workflows/ci.yml/badge.svg)](https://github.com/monickverma/proptoken2/actions/workflows/ci.yml)
 
 - **Live demo:** https://proptoken2.vercel.app (React app + demo API on Vercel; API data is in memory and resets)
-- **Contracts on Base Sepolia:** [AssetRegistry](https://sepolia.basescan.org/address/0x61bfab5D232429512c4D183a05Ec22F7e64B1562), [RWASecurityToken](https://sepolia.basescan.org/address/0x2feD68a1B753395d1BD4899438d9A37A21176cC4)
+- **Testnet trading:** connect a wallet on the live demo to buy and sell the demo property tokens with real Base Sepolia transactions (valueless test tokens). See [Trying the testnet market](#trying-the-testnet-market).
 
 ## What's in the repo
 
 | Part | Path | Stack | What it does |
 |---|---|---|---|
-| Smart contracts | `proptoken-autonomous/contracts/src` | Solidity 0.8.20, Foundry, OpenZeppelin 5.5 | Asset registry, ERC-3643-style security token, token factory, ERC-7540-style async redemption, Merkle attestation verifier. 23 Foundry tests. |
-| Deployed snapshot | `proptoken-autonomous/contracts/contracts` | Hardhat | The sources that were deployed to Base Sepolia (see [Deployments](#deployments)). |
+| Smart contracts | `proptoken-autonomous/contracts/src` | Solidity 0.8.20, Foundry, OpenZeppelin 5.5 | Asset registry, ERC-3643-style security token, token factory, ERC-7540-style async redemption, Merkle attestation verifier, and a testnet market (TestUSD faucet + `PropTokenMarket`). 37 Foundry tests. |
+| Legacy snapshot | `proptoken-autonomous/contracts/contracts` | Hardhat | The sources of the January 2026 Base Sepolia deployment (see [Deployments](#deployments)). |
 | Oracle node | `oracle-network/` | Go, go-ethereum | HTTP `/verify`: runs existence + ownership checks, commits to each signal as a leaf of a keccak256 Merkle tree, returns an inclusion proof per signal, signs the root with secp256k1 ECDSA, and can push the result to `AssetRegistry.registerAsset`. |
 | Oracle stub | `proptoken-autonomous/oracle-network/` | Go (stdlib) | Fixed-score `/verify/{existence,ownership,activity}` endpoints, started by Docker Compose. The current submission flow doesn't call it. |
 | Verification backend | `proptoken-autonomous/backend` | NestJS, GraphQL (Apollo) | REST `POST/GET /submissions`: weighted heuristic scoring in-process and a keccak256 asset fingerprint. GraphQL market queries. |
 | Submission UI | `proptoken-autonomous/frontend` | Next.js 16 | Asset submission form and verification progress page for the backend. |
-| Main web app | repo root (`App.tsx`, `pages/`, `components/`) | React, Vite, wagmi/viem | The live demo: investor/issuer dashboards, fractional purchase, swap, yield, verification views. Wallet connection on Base Sepolia. |
+| Main web app | repo root (`App.tsx`, `pages/`, `components/`) | React, Vite, wagmi/viem | The live demo: investor/issuer dashboards, fractional purchase, swap, yield, verification views. With a connected wallet, Buy (Fractional) and Sell (Swap) send real Base Sepolia transactions to the testnet market; without one, they are simulated in the browser. |
 | Demo API | `src/`, `api/index.ts` | Express, JWT, zod | Auth, assets, wallet ledger and ABM routes behind the live demo (in-memory store). |
 | ABM engine | `proptoken-autonomous/abm-engine` | Python, FastAPI | Rule-based fraud and market-intelligence heuristics (mock comparables). |
 | Subgraph | `subgraph/` | The Graph | Schema and mappings for token transfers and NAV updates (not deployed; see limitations). |
@@ -49,12 +49,17 @@ flowchart LR
         TOK["RWASecurityToken"]
         RED["AsyncRedemptionController"]
         VER["OracleAttestationVerifier"]
+        MKT["PropTokenMarket"]
+        USD["TestUSD (faucet)"]
         FACT -- "isEligible / markAsTokenized" --> REG
+        MKT -- "mint / burn / whitelist" --> TOK
+        MKT -- "price paid / payout" --> USD
         FACT -- deploys --> TOK
         RED -- "lock / burn" --> TOK
     end
 
-    UI -. "block number, events" .-> Chain
+    UI -- "wallet txs: faucet, buy, sell" --> MKT
+    UI -. "balances, Bought / Sold events" .-> Chain
     ORACLE -- "registerAsset (optional)" --> REG
     TOK -. "Transfer / NAVUpdated" .-> SG["Subgraph"]
 ```
@@ -69,20 +74,48 @@ All in `proptoken-autonomous/contracts/src`, using OpenZeppelin `AccessControl` 
 | `RWASecurityToken` | ERC-20 with ERC-3643-style transfer rules: verified-investor whitelist, frozen wallets, pause, investor cap, forced transfer, NAV and NAV per token. | `MINTER_ROLE`, `COMPLIANCE_ROLE`, `AGENT_ROLE`, `DEFAULT_ADMIN_ROLE` |
 | `TokenFactory` | Deploys a token only for an eligible, untokenized registry asset, marks it tokenized, hands the token roles to the caller and renounces its own. | `FACTORY_ROLE` |
 | `AsyncRedemptionController` | ERC-7540-style request → approve → settle (burn) / cancel (return) flow for illiquid assets; payout happens off-chain. | `OPERATOR_ROLE` |
+| `TestUSD` (`src/testnet`) | Valueless 6-decimal stablecoin with a public faucet: 10,000 tUSD per wallet per day. | `MINTER_ROLE` (reserve funding) |
+| `PropTokenMarket` (`src/testnet`) | Testnet primary market: `buy` takes tUSD at a fixed price per token and mints the security token, whitelisting first-time buyers; `sell` takes tokens back, burns them and pays the price minus a spread (2%) from its tUSD reserve. Needs `MINTER_ROLE` and `COMPLIANCE_ROLE` on each listed token. | `LISTER_ROLE` sets prices; `DEFAULT_ADMIN_ROLE` sets the spread |
 | `OracleAttestationVerifier` | Stores attestation Merkle roots and verifies one oracle signal against a root: it recomputes the leaf from the signal's fields and checks the proof with OpenZeppelin `MerkleProof` (sorted-pair keccak256). | `ORACLE_ROLE` (granted/revoked via `authorizeOracle`) |
 
 "ERC-3643-style" and "ERC-7540-style" mean the contracts follow those standards' ideas; they do not implement the full interfaces (no ONCHAINID identity registry, no ERC-4626 vault).
 
 ### Deployments
 
-Base Sepolia (chain ID 84532), deployed January 2026 with Hardhat from `contracts/contracts/`:
+**Testnet market (current).** `script/DeployTestnetMarket.s.sol` deploys the `src/` contracts to Base Sepolia (chain ID 84532): registry, verifier, factory, redemption controller, TestUSD and the market, plus one token per demo asset with a funded buyback reserve. It writes every address to [`deployments/base-sepolia.json`](proptoken-autonomous/contracts/deployments/base-sepolia.json), which the web app reads.
+
+**Legacy (January 2026).** Deployed with Hardhat from `contracts/contracts/`; no longer used by the app:
 
 | Contract | Address |
 |---|---|
 | AssetRegistry | [`0x61bfab5D232429512c4D183a05Ec22F7e64B1562`](https://sepolia.basescan.org/address/0x61bfab5D232429512c4D183a05Ec22F7e64B1562) |
 | RWASecurityToken ("PropToken RWA Test", PRWA) | [`0x2feD68a1B753395d1BD4899438d9A37A21176cC4`](https://sepolia.basescan.org/address/0x2feD68a1B753395d1BD4899438d9A37A21176cC4) |
 
-The deployed bytecode matches the Hardhat sources in `contracts/contracts/` (checked with metadata stripped). That snapshot predates the fixes in `src/`: its `AssetRegistry` uses an `ORACLE_ROLE` + `verifyAsset` flow instead of `CONSENSUS_ROLE`. `TokenFactory`, `AsyncRedemptionController` and `OracleAttestationVerifier` are not deployed.
+The deployed bytecode matches the Hardhat sources in `contracts/contracts/` (checked with metadata stripped). That snapshot predates the fixes in `src/`: its `AssetRegistry` uses an `ORACLE_ROLE` + `verifyAsset` flow instead of `CONSENSUS_ROLE`.
+
+### Trying the testnet market
+
+1. Open https://proptoken2.vercel.app, sign in (demo account), and connect a wallet such as MetaMask. The app asks to switch it to Base Sepolia.
+2. Get a little Base Sepolia ETH for gas from a [faucet](https://docs.base.org/base-chain/tools/network-faucets).
+3. On **Fractional**, press **Get 10,000 test USD**, pick an asset and **Buy**: one approval, then the purchase.
+4. On **Swap**, **Sell** tokens back for tUSD: one approval, then the sale.
+
+Every step is a Base Sepolia transaction with a BaseScan link, and the dashboard's live feed shows market trades as they happen. The tokens and tUSD have no value.
+
+### Deploying the testnet market
+
+The deploy script takes its signer from the command line, so the key never goes into a file or an environment variable. With a fresh testnet-only key and about 0.01 Base Sepolia ETH (the whole deploy is 45 transactions, roughly 19M gas):
+
+```bash
+cast wallet import proptoken-deployer --interactive   # stores the key encrypted in ~/.foundry/keystores
+cd proptoken-autonomous/contracts
+forge script script/DeployTestnetMarket.s.sol \
+  --rpc-url https://sepolia.base.org \
+  --account proptoken-deployer --sender <DEPLOYER_ADDRESS> \
+  --broadcast
+```
+
+Set `ORACLE_ADDRESS` to give an oracle node `CONSENSUS_ROLE` on the new registry. Commit the updated `deployments/base-sepolia.json`; the web app picks it up on the next build.
 
 ## Running it
 
@@ -110,6 +143,8 @@ npm ci
 npm run dev            # Express API on :3002
 npm run dev:frontend   # Vite app on :3003, proxies API routes to :3002
 ```
+
+Frontend settings (all optional, see `.env.example`): `VITE_WALLETCONNECT_PROJECT_ID` enables WalletConnect and mobile wallets (without it only browser-extension wallets are offered), `VITE_BASE_SEPOLIA_RPC_URL` overrides the public read RPC, and `VITE_DEPLOYMENT` picks another file in `deployments/` (for example a local fork).
 
 Set `JWT_SECRET` for anything beyond local use. Without it the API uses a random per-process secret in development and refuses to issue tokens in production.
 
@@ -144,9 +179,11 @@ This is a hackathon prototype. In particular:
 - **Verification inputs are mocked.** The Go oracle's satellite client only builds a Yandex static-map URL (it never fetches or analyses the image), the vision score is random in 0.85–0.99, and the MCA company check always passes. The NestJS satellite check returns a fixed 0.92 for any valid coordinates. The oracle stub returns fixed scores.
 - **The Merkle root is not stored in the verifier automatically.** The Go node builds a keccak256 sorted-pair Merkle tree over its signals (one leaf per signal: `keccak256(bytes.concat(keccak256(abi.encode(submissionId, category, signal, source, score))))`, the OpenZeppelin `StandardMerkleTree` encoding) and `/verify` returns a proof for each signal. `OracleAttestationVerifier.verifyOracleResult` recomputes that leaf on-chain and checks the proof; `test/Contracts.t.sol` checks a vector generated by the Go code. But the node pushes the root to `AssetRegistry.registerAsset`, not to the verifier, so someone with `ORACLE_ROLE` still has to call `storeAttestation`. Leaves commit to each signal's name, source and score (rounded to 6 decimals, 1e18 scale), not to its raw data or timestamp.
 - **Oracle signatures are not checked on-chain.** The node signs its commitment with ECDSA, but the contracts authorise oracles by role (`msg.sender`), not by recovering a signature.
-- **The Go oracle node targets the `src/` registry ABI**, not the older deployed one, so pushing to the current Base Sepolia registry would revert until `src/` is redeployed.
+- **The Go oracle node targets the `src/` registry ABI.** It can publish to a registry deployed by `DeployTestnetMarket.s.sol` once its address holds `CONSENSUS_ROLE`; the legacy January registry has a different interface.
 - **The demo API and NestJS backend keep data in memory**, and market data on the GraphQL API (`tokens`, `orderBook`, `recentTrades`) is mock data. The GraphQL mock-SPV mutations in `src/api/mutation.resolver.ts` and `MOCK_SPV_FLOW.md` are not registered in a Nest module yet.
-- **KYC is a whitelist** (`verifyInvestor`), not an identity registry.
+- **KYC is a whitelist** (`verifyInvestor`), not an identity registry, and the testnet market whitelists any wallet on its first purchase.
+- **The testnet market is a primary market with fixed prices**, set by the deployer (the demo assets' rupee prices divided by 100, in tUSD). There is no order book or price discovery, and the buyback reserve is minted tUSD.
+- **Without a connected wallet, the app's wallet is simulated:** the dashboard portfolio, purchases and swaps live in the browser's local storage. Sign-in is a browser-only demo, not the Express API's JWT auth.
 - **The subgraph is not deployable as-is:** `subgraph.yaml` points at a local Hardhat address and the ABI file it references isn't committed.
 
 ## License
