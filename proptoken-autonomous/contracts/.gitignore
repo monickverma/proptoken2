@@ -14,3 +14,6 @@ docs/
 .env
 .env.*
 !.env.example
+
+# Local rehearsal deployments (fork / anvil)
+deployments/local-*.json

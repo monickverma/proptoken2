@@ -1,26 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useWatchContractEvent, useBlockNumber } from 'wagmi';
+import { baseSepolia } from 'wagmi/chains';
+import { formatUnits, type Log } from 'viem';
 import { Activity, ExternalLink, Box, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-// ABI for AssetRegistry (Partial)
-const assetRegistryAbi = [
-    {
-        "type": "event",
-        "name": "AssetRegistered",
-        "inputs": [
-            { "name": "fingerprint", "type": "bytes32", "indexed": true },
-            { "name": "owner", "type": "address", "indexed": true },
-            { "name": "eligible", "type": "bool", "indexed": false },
-            { "name": "isMock", "type": "bool", "indexed": false },
-            { "name": "timestamp", "type": "uint256", "indexed": false }
-        ],
-        "anonymous": false
-    }
-] as const;
-
-// Replace with your deployed contract address
-const CONTRACT_ADDRESS = '0x5FbDB2315678afecb367f032d93F642f64180aa3';
+import { marketAbi, TOKEN_DECIMALS, USD_DECIMALS } from '../onchain/abis';
+import { deployment } from '../onchain/deployment';
 
 interface EventLog {
     id: string;
@@ -31,26 +16,45 @@ interface EventLog {
     isMock: boolean;
 }
 
+const symbolOf = (token?: string) =>
+    Object.values(deployment?.assets ?? {}).find(a => a.token.toLowerCase() === token?.toLowerCase())?.symbol ?? 'tokens';
+
+// Live trades on the Base Sepolia testnet market (Bought / Sold events)
 export const BlockchainPulse: React.FC = () => {
-    const { data: blockNumber } = useBlockNumber({ watch: true });
+    const { data: blockNumber } = useBlockNumber({ watch: true, chainId: baseSepolia.id });
     const [events, setEvents] = useState<EventLog[]>([]);
 
-    // Listen for AssetRegistered events
-    useWatchContractEvent({
-        address: CONTRACT_ADDRESS,
-        abi: assetRegistryAbi,
-        eventName: 'AssetRegistered',
-        onLogs(logs) {
-            const newEvents = logs.map((log: any) => ({
+    const addLogs = (type: 'Bought' | 'Sold') => (logs: Log[]) => {
+        const newEvents = logs.map((log: any) => {
+            const amount = Number(formatUnits(log.args.amount ?? 0n, TOKEN_DECIMALS)).toLocaleString();
+            const usd = Number(formatUnits((type === 'Bought' ? log.args.cost : log.args.payout) ?? 0n, USD_DECIMALS)).toLocaleString();
+            return {
                 id: log.transactionHash + log.logIndex,
-                type: 'Asset Registration',
+                type: type === 'Bought' ? 'Purchase' : 'Sale',
                 hash: log.transactionHash,
                 timestamp: Date.now(),
-                details: `Asset ${log.args.fingerprint?.slice(0, 10)}... registered`,
-                isMock: log.args.isMock || false
-            }));
-            setEvents(prev => [...newEvents, ...prev].slice(0, 5));
-        },
+                details: `${type} ${amount} ${symbolOf(log.args.token)} for ${usd} tUSD`,
+                isMock: false,
+            };
+        });
+        setEvents(prev => [...newEvents, ...prev].slice(0, 5));
+    };
+
+    useWatchContractEvent({
+        address: deployment?.market,
+        abi: marketAbi,
+        eventName: 'Bought',
+        chainId: baseSepolia.id,
+        enabled: Boolean(deployment),
+        onLogs: addLogs('Bought'),
+    });
+    useWatchContractEvent({
+        address: deployment?.market,
+        abi: marketAbi,
+        eventName: 'Sold',
+        chainId: baseSepolia.id,
+        enabled: Boolean(deployment),
+        onLogs: addLogs('Sold'),
     });
 
     return (
@@ -79,7 +83,7 @@ export const BlockchainPulse: React.FC = () => {
                         {events.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs italic opacity-60">
                                 <Box className="w-8 h-8 mb-2 opacity-20" />
-                                Waiting for transactions...
+                                {deployment ? 'Waiting for market trades...' : 'Testnet market not deployed yet'}
                             </div>
                         ) : (
                             events.map((event) => (
@@ -99,6 +103,7 @@ export const BlockchainPulse: React.FC = () => {
                                                 {event.isMock && <span className="text-[9px] bg-amber-200 text-amber-800 px-1 rounded">TEST</span>}
                                                 {event.type}
                                             </h4>
+                                            <p className="text-[10px] text-slate-500 mt-0.5">{event.details}</p>
                                             <p className="text-[10px] text-slate-500 font-mono mt-0.5">{event.hash.slice(0, 10)}...{event.hash.slice(-8)}</p>
                                         </div>
                                         <a

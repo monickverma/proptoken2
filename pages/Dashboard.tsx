@@ -38,7 +38,7 @@ const Dashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 tracking-tight">Dashboard</h1>
-          <p className="text-slate-400 dark:text-slate-500 font-bold uppercase text-xs tracking-widest mt-1">Portfolio Overview</p>
+          <p className="text-slate-400 dark:text-slate-500 font-bold uppercase text-xs tracking-widest mt-1">Portfolio Overview · Simulated demo wallet</p>
         </div>
         <div className="flex gap-4">
           <Link to="/autonomous/submit" className="bg-slate-900 text-white px-6 py-4 rounded-lg font-black uppercase tracking-widest text-sm hover:bg-slate-800 transition-colors btn-flat">

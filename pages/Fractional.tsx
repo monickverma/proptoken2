@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { DUMMY_ASSETS } from '../constants';
 import { Layers, ShoppingCart, CheckCircle2, AlertCircle, Loader2, ExternalLink, Search, Filter, SlidersHorizontal, X } from 'lucide-react';
 import { MintTokens } from '../components/MintTokens';
+import { OnchainTradePanel } from '../components/OnchainTradePanel';
+import { ONCHAIN_ENABLED } from '../onchain/deployment';
+import { useAccount } from 'wagmi';
 import { MockAssetBadge } from '../components/MockAssetBadge';
 
 // Evidence Modal Component
@@ -143,6 +146,8 @@ const EvidenceModal = ({ asset, onClose }: { asset: any, onClose: () => void }) 
 
 const Fractional: React.FC = () => {
   const { buyTokens, wallet } = useAuth();
+  const { isConnected } = useAccount();
+  const onchain = ONCHAIN_ENABLED && isConnected;
   const [selectedAssetId, setSelectedAssetId] = useState(DUMMY_ASSETS[0].id);
   const [tokenCount, setTokenCount] = useState<number>(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -387,15 +392,23 @@ const Fractional: React.FC = () => {
           <div className="bg-slate-900 dark:bg-slate-800 p-8 rounded-xl text-white">
             <h2 className="text-lg font-black uppercase tracking-widest mb-6">Ledger Execution</h2>
 
-            <MintTokens
-              assetId={selectedAsset.id}
-              pricePerToken={selectedAsset.tokenPrice}
-              availableTokens={1000}
-              onSuccess={() => { }}
-            />
+            {onchain ? (
+              <OnchainTradePanel assetId={selectedAsset.id} mode="buy" />
+            ) : (
+              <MintTokens
+                assetId={selectedAsset.id}
+                pricePerToken={selectedAsset.tokenPrice}
+                availableTokens={1000}
+                onSuccess={() => { }}
+              />
+            )}
 
             <p className="text-center text-[10px] text-white/40 mt-6 uppercase font-black leading-tight tracking-widest">
-              Transaction will be broadcasted to the Base Sepolia network.
+              {onchain
+                ? 'Real transactions on Base Sepolia testnet. Tokens and test USD have no value.'
+                : ONCHAIN_ENABLED
+                  ? 'Simulated. Connect a wallet to buy for real on Base Sepolia testnet.'
+                  : 'Simulated. No blockchain transaction is sent.'}
             </p>
           </div>
         </div>
