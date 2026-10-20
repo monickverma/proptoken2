@@ -2,13 +2,13 @@
 import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../config/jwt';
 import { z } from 'zod';
 import { db } from '../repositories/db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { getWalletSummary } from '../services/walletService';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key';
 
 const signupSchema = z.object({
   name: z.string().min(2),
@@ -40,7 +40,7 @@ router.post('/signup', async (req, res) => {
     };
     db.wallets.push(newWallet);
 
-    const token = jwt.sign({ id: userId, email }, JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ id: userId, email }, getJwtSecret(), { expiresIn: '1d' });
 
     (res as any).json({
       success: true,
@@ -63,7 +63,12 @@ router.post('/signin', async (req, res) => {
     return (res as any).status(401).json({ success: false, error: { message: 'Invalid credentials' } });
   }
 
-  const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '1d' });
+  let token: string;
+  try {
+    token = jwt.sign({ id: user.id, email: user.email }, getJwtSecret(), { expiresIn: '1d' });
+  } catch (err) {
+    return (res as any).status(500).json({ success: false, error: { message: 'Auth is not configured on this server' } });
+  }
 
   (res as any).json({
     success: true,

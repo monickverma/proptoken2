@@ -19,6 +19,7 @@ export class TokenMinterService {
   private readonly logger = new Logger(TokenMinterService.name);
   private provider: ethers.JsonRpcProvider;
   private wallet: ethers.Wallet;
+  private simulationOnly = false;
   private chainId: number;
   private tokenMintings: Map<string, TokenMintingResult> = new Map();
 
@@ -45,25 +46,23 @@ export class TokenMinterService {
    */
   private initializeProvider(): void {
     try {
-      // Sepolia testnet endpoint
-      const sepoliaRpc = process.env.SEPOLIA_RPC_URL || 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY';
-      this.provider = new ethers.JsonRpcProvider(sepoliaRpc);
-
-      // Use wallet from environment (PRIVATE_KEY_SEPOLIA)
+      // RPC URL and key come only from the environment. If either is missing,
+      // minting runs in simulation mode with a throwaway random wallet.
+      const sepoliaRpc = process.env.SEPOLIA_RPC_URL;
       const privateKey = process.env.PRIVATE_KEY_SEPOLIA;
-      if (!privateKey) {
+      if (!sepoliaRpc || !privateKey) {
         this.logger.warn(
-          '[TokenMinter] PRIVATE_KEY_SEPOLIA not set. Token minting will be in simulation mode.'
+          '[TokenMinter] SEPOLIA_RPC_URL or PRIVATE_KEY_SEPOLIA not set. Token minting will be in simulation mode.'
         );
-        // Use a dummy key for testing
-        const dummyKey = '0x0000000000000000000000000000000000000000000000000000000000000001';
-        this.wallet = new ethers.Wallet(dummyKey, this.provider);
+        this.simulationOnly = true;
+        this.wallet = new ethers.Wallet(ethers.Wallet.createRandom().privateKey);
       } else {
+        this.provider = new ethers.JsonRpcProvider(sepoliaRpc);
         this.wallet = new ethers.Wallet(privateKey, this.provider);
       }
 
       this.chainId = 11155111; // Sepolia chain ID
-      this.logger.log('[TokenMinter] Sepolia provider initialized');
+      this.logger.log(`[TokenMinter] Initialized (${this.simulationOnly ? 'simulation' : 'Sepolia'} mode)`);
     } catch (error) {
       this.logger.error('[TokenMinter] Failed to initialize provider:', error);
     }
@@ -87,6 +86,10 @@ export class TokenMinterService {
       const initialSupply = ethers.parseUnits('1000', 18); // 1000 tokens with 18 decimals
 
       this.logger.log(`[Minting] Token: ${tokenName} (${tokenSymbol})`);
+
+      if (this.simulationOnly) {
+        return this.simulateTokenDeployment(submission, tokenName, tokenSymbol, initialSupply);
+      }
 
       // Check wallet balance
       const balance = await this.provider.getBalance(this.wallet.address);

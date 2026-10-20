@@ -74,8 +74,20 @@ type SignalData struct {
 }
 
 type AttestationData struct {
-	MerkleRoot    string    `json:"merkle_root"`
-	OracleAddress string    `json:"oracle_address"`
-	Signature     string    `json:"signature"`
-	Timestamp     time.Time `json:"timestamp"`
+	MerkleRoot    string        `json:"merkle_root"`
+	OracleAddress string        `json:"oracle_address"`
+	Signature     string        `json:"signature"`
+	Timestamp     time.Time     `json:"timestamp"`
+	Proofs        []SignalProof `json:"proofs,omitempty"`
+}
+
+// SignalProof is one committed signal plus its Merkle inclusion proof. The
+// fields are the arguments OracleAttestationVerifier.verifyOracleResult takes.
+type SignalProof struct {
+	Category string   `json:"category"`
+	Signal   string   `json:"signal"`
+	Source   string   `json:"source"`
+	Score    string   `json:"score"` // 1e18 fixed point, decimal string
+	Leaf     string   `json:"leaf"`
+	Proof    []string `json:"proof"`
 }

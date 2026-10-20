@@ -44,7 +44,8 @@ contract IntegrationTest is Test {
             bytes32(0), // attestation root
             bytes32(0), // abm hash
             [uint256(1e18), uint256(1e18), uint256(0), uint256(10)], // scores
-            true // eligible
+            true, // eligible
+            false // isMock
         );
         vm.stopPrank();
         
@@ -98,5 +99,21 @@ contract IntegrationTest is Test {
         
         (,, uint256 amount,,,,,) = redemption.redemptionRequests(requestId);
         assertEq(amount, 50 * 1e18);
+        assertEq(redemption.pendingRedemptions(address(token)), 50 * 1e18);
+        
+        // 6. Operator approves and settles (off-chain payout is out of scope)
+        vm.startPrank(admin);
+        redemption.grantRole(redemption.OPERATOR_ROLE(), admin);
+        redemption.approveRedemption(requestId, 500000 * 1e18, keccak256("liquidation proof"));
+        redemption.settleRedemption(requestId);
+        vm.stopPrank();
+        
+        AsyncRedemptionController.RedemptionRequest memory req = redemption.getRedemptionRequest(requestId);
+        assertEq(uint256(req.status), uint256(AsyncRedemptionController.RedemptionStatus.Settled));
+        assertEq(req.estimatedValue, 500000 * 1e18);
+        assertEq(redemption.pendingRedemptions(address(token)), 0);
+        assertEq(token.balanceOf(address(redemption)), 0);
+        assertEq(token.totalSupply(), 50 * 1e18); // redeemed tokens burned
+        assertEq(token.currentInvestorsCount(), 1); // only alice still holds
     }
 }

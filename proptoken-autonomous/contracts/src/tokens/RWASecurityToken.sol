@@ -44,6 +44,8 @@ contract RWASecurityToken is ERC20, AccessControl, ReentrancyGuard {
     event WalletFrozen(address indexed wallet, bool frozen);
     event ComplianceRuleUpdated(string rule, uint256 value);
     event ForcedTransfer(address indexed from, address indexed to, uint256 amount, address indexed agent);
+    event NAVUpdated(uint256 newNAV, uint256 navPerToken);
+    event TokenPaused(bool paused);
     
     constructor(
         string memory name,
@@ -81,12 +83,6 @@ contract RWASecurityToken is ERC20, AccessControl, ReentrancyGuard {
         require(verifiedInvestors[to], "Investor not verified");
         require(!frozenWallets[to], "Wallet is frozen");
         
-        if (!isInvestor[to] && amount > 0) {
-            require(currentInvestorsCount < maxInvestorsCount, "Max investors reached");
-            isInvestor[to] = true;
-            currentInvestorsCount++;
-        }
-        
         _mint(to, amount);
     }
     
@@ -96,11 +92,6 @@ contract RWASecurityToken is ERC20, AccessControl, ReentrancyGuard {
     function burn(uint256 amount) external {
         require(!tokenInfo.paused, "Token is paused");
         _burn(msg.sender, amount);
-        
-        if (balanceOf(msg.sender) == 0 && isInvestor[msg.sender]) {
-            isInvestor[msg.sender] = false;
-            currentInvestorsCount--;
-        }
     }
     
     /**
@@ -168,6 +159,7 @@ contract RWASecurityToken is ERC20, AccessControl, ReentrancyGuard {
      */
     function pause(bool paused) external onlyRole(DEFAULT_ADMIN_ROLE) {
         tokenInfo.paused = paused;
+        emit TokenPaused(paused);
     }
     
     /**
@@ -175,6 +167,26 @@ contract RWASecurityToken is ERC20, AccessControl, ReentrancyGuard {
      */
     function updateNAV(uint256 newNAV) external onlyRole(DEFAULT_ADMIN_ROLE) {
         tokenInfo.totalAssetValue = newNAV;
+        emit NAVUpdated(newNAV, this.navPerToken());
+    }
+    
+    /**
+     * @dev Keeps the investor count in sync on every balance change
+     * (mint, burn, transfer, forced transfer), so the cap also holds for
+     * investors who receive tokens by transfer.
+     */
+    function _update(address from, address to, uint256 value) internal override {
+        super._update(from, to, value);
+        
+        if (to != address(0) && value > 0 && !isInvestor[to]) {
+            require(currentInvestorsCount < maxInvestorsCount, "Max investors reached");
+            isInvestor[to] = true;
+            currentInvestorsCount++;
+        }
+        if (from != address(0) && isInvestor[from] && balanceOf(from) == 0) {
+            isInvestor[from] = false;
+            currentInvestorsCount--;
+        }
     }
     
     /**

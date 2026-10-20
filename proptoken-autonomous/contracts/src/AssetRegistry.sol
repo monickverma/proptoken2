@@ -89,6 +89,7 @@ contract AssetRegistry is AccessControl, ReentrancyGuard {
         bool eligible,
         bool isMock
     ) external onlyRole(CONSENSUS_ROLE) nonReentrant {
+        require(fingerprint != bytes32(0), "Invalid fingerprint");
         require(!registeredFingerprints[fingerprint], "Asset already registered");
         require(owner != address(0), "Invalid owner");
         require(scores[0] <= 1e18, "Invalid existence score");

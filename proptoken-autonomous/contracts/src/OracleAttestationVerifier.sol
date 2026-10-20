@@ -41,15 +41,39 @@ contract OracleAttestationVerifier is AccessControl {
     }
     
     /**
-     * @dev Verify a specific oracle result against stored Merkle root
+     * @dev Verify one oracle signal against a stored Merkle root. The leaf is
+     * computed here from the signal's fields, so a caller cannot pass an inner
+     * node of the tree off as a leaf. Matches the Go oracle (oracle-network,
+     * internal/crypto/merkle.go), which returns these fields and the proof from /verify.
+     * @param score Signal score in 1e18 fixed point
      */
     function verifyOracleResult(
         bytes32 merkleRoot,
-        bytes32 leaf,
+        string calldata submissionId,
+        string calldata category,
+        string calldata signal,
+        string calldata source,
+        uint256 score,
         bytes32[] calldata proof
     ) external view returns (bool) {
         require(validAttestations[merkleRoot], "Invalid attestation root");
-        return MerkleProof.verify(proof, merkleRoot, leaf);
+        bytes32 leaf = signalLeaf(submissionId, category, signal, source, score);
+        return MerkleProof.verifyCalldata(proof, merkleRoot, leaf);
+    }
+
+    /**
+     * @dev OpenZeppelin StandardMerkleTree leaf for (string, string, string, string, uint256):
+     * keccak256(bytes.concat(keccak256(abi.encode(...)))). The double hash keeps a
+     * 64-byte inner node from ever hashing to a valid leaf.
+     */
+    function signalLeaf(
+        string calldata submissionId,
+        string calldata category,
+        string calldata signal,
+        string calldata source,
+        uint256 score
+    ) public pure returns (bytes32) {
+        return keccak256(bytes.concat(keccak256(abi.encode(submissionId, category, signal, source, score))));
     }
     
     /**
@@ -60,7 +84,11 @@ contract OracleAttestationVerifier is AccessControl {
         onlyRole(DEFAULT_ADMIN_ROLE) 
     {
         authorizedOracles[oracle] = authorized;
-        _grantRole(ORACLE_ROLE, oracle);
+        if (authorized) {
+            _grantRole(ORACLE_ROLE, oracle);
+        } else {
+            _revokeRole(ORACLE_ROLE, oracle);
+        }
         emit OracleAuthorized(oracle, authorized);
     }
 }

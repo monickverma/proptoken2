@@ -104,7 +104,7 @@ SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/YOUR_INFURA_KEY
 
 # Private key for token deployment (optional - for real on-chain deployment)
 # NEVER commit this to repo
-PRIVATE_KEY_SEPOLIA=0x0000000000000000000000000000000000000000000000000000000000000001
+PRIVATE_KEY_SEPOLIA=<fresh-testnet-only-private-key>
 
 # NestJS config
 NEST_ENV=development

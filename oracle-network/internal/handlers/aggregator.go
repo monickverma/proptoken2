@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"fmt"
+	"sort"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/yourorg/proptoken-oracle/internal/blockchain"
 	"github.com/yourorg/proptoken-oracle/internal/crypto"
@@ -39,20 +42,15 @@ func (a *OracleAggregator) VerifySubmission(sub *types.SubmissionData) (*types.O
 		},
 	}
 
-	// 2. Generate Merkle Proof
-	// Collect all signal hashes
-	var leaves []string
-
-	// Existence Signals
-	for k, v := range existenceRes.Signals {
-		leaves = append(leaves, fmt.Sprintf("existence:%s:%v", k, v.Score))
+	// 2. Commit to every signal in a Merkle tree (one leaf per signal)
+	merkleRoot, proofs, err := buildSignalTree(sub.ID, map[string]map[string]types.SignalData{
+		"existence": existenceRes.Signals,
+		"ownership": ownershipRes.Signals,
+		"activity":  activityRes.Signals,
+	})
+	if err != nil {
+		return nil, err
 	}
-	// Ownership Signals
-	for k, v := range ownershipRes.Signals {
-		leaves = append(leaves, fmt.Sprintf("ownership:%s:%v", k, v.Score))
-	}
-
-	merkleRoot := crypto.GenerateMerkleRoot(leaves)
 
 	// 3. Sign Attestation
 	signature, err := a.Signer.SignAttestation(merkleRoot, sub.ID)
@@ -82,7 +80,65 @@ func (a *OracleAggregator) VerifySubmission(sub *types.SubmissionData) (*types.O
 			OracleAddress: "0xMockOracleAddress",
 			Signature:     signature,
 			Timestamp:     time.Now(),
+			Proofs:        proofs,
 		},
 		Timestamp: time.Now(),
 	}, nil
+}
+
+// buildSignalTree hashes each signal into a leaf, builds the attestation tree and
+// returns its root with an inclusion proof per signal, sorted by category and name.
+func buildSignalTree(subID string, byCategory map[string]map[string]types.SignalData) (string, []types.SignalProof, error) {
+	var signals []crypto.Signal
+	for category, sigs := range byCategory {
+		for name, sig := range sigs {
+			signals = append(signals, crypto.Signal{
+				SubmissionID: subID,
+				Category:     category,
+				Name:         name,
+				Source:       sig.Source,
+				Score:        crypto.ScoreToUint(sig.Score),
+			})
+		}
+	}
+	sort.Slice(signals, func(i, j int) bool {
+		if signals[i].Category != signals[j].Category {
+			return signals[i].Category < signals[j].Category
+		}
+		return signals[i].Name < signals[j].Name
+	})
+
+	leaves := make([]common.Hash, len(signals))
+	for i, s := range signals {
+		leaf, err := crypto.LeafHash(s)
+		if err != nil {
+			return "", nil, err
+		}
+		leaves[i] = leaf
+	}
+	tree, err := crypto.NewMerkleTree(leaves)
+	if err != nil {
+		return "", nil, err
+	}
+
+	proofs := make([]types.SignalProof, len(signals))
+	for i, s := range signals {
+		path, err := tree.Proof(leaves[i])
+		if err != nil {
+			return "", nil, err
+		}
+		hexPath := make([]string, len(path))
+		for j, h := range path {
+			hexPath[j] = h.Hex()
+		}
+		proofs[i] = types.SignalProof{
+			Category: s.Category,
+			Signal:   s.Name,
+			Source:   s.Source,
+			Score:    s.Score.String(),
+			Leaf:     leaves[i].Hex(),
+			Proof:    hexPath,
+		}
+	}
+	return tree.Root().Hex(), proofs, nil
 }

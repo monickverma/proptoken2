@@ -1,10 +1,4 @@
 {
-  "lib/T-REX": {
-    "tag": {
-      "name": "4.1.6",
-      "rev": "a09cfd38aa257d56db7ff9c90f30e65f125a141b"
-    }
-  },
   "lib/forge-std": {
     "tag": {
       "name": "v1.14.0",

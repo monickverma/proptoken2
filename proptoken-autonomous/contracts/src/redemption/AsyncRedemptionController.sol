@@ -45,6 +45,9 @@ contract AsyncRedemptionController is AccessControl, ReentrancyGuard {
     
     uint256 public constant SETTLEMENT_PERIOD = 90 days; // Max wait time
     
+    // Included in request IDs so identical requests in one block get distinct IDs
+    uint256 public requestNonce;
+    
     // Events
     event RedemptionRequested(
         bytes32 indexed requestId,
@@ -76,15 +79,13 @@ contract AsyncRedemptionController is AccessControl, ReentrancyGuard {
         
         // Generate request ID
         bytes32 requestId = keccak256(
-            abi.encodePacked(msg.sender, token, amount, block.timestamp)
+            abi.encode(msg.sender, token, amount, block.timestamp, requestNonce++)
         );
+        require(redemptionRequests[requestId].status == RedemptionStatus.None, "Request exists");
         
         // Calculate estimated value (NAV per token * amount)
         uint256 navPerToken = securityToken.navPerToken();
         uint256 estimatedValue = (navPerToken * amount) / 1e18;
-        
-        // Lock tokens
-        securityToken.transferFrom(msg.sender, address(this), amount);
         
         // Create request
         redemptionRequests[requestId] = RedemptionRequest({
@@ -100,6 +101,9 @@ contract AsyncRedemptionController is AccessControl, ReentrancyGuard {
         
         pendingRedemptions[token] += amount;
         investorRequests[msg.sender].push(requestId);
+        
+        // Lock tokens (after state writes: `token` is caller-supplied)
+        require(securityToken.transferFrom(msg.sender, address(this), amount), "Lock failed");
         
         emit RedemptionRequested(requestId, msg.sender, token, amount, block.timestamp);
         
@@ -135,15 +139,14 @@ contract AsyncRedemptionController is AccessControl, ReentrancyGuard {
         RedemptionRequest storage request = redemptionRequests[requestId];
         require(request.status == RedemptionStatus.Approved, "Not approved");
         
-        // Burn tokens
-        RWASecurityToken token = RWASecurityToken(request.token);
-        token.burn(request.tokenAmount);
-        
         // Mark as settled
         request.status = RedemptionStatus.Settled;
         request.settlementTime = block.timestamp;
         
         pendingRedemptions[request.token] -= request.tokenAmount;
+        
+        // Burn tokens
+        RWASecurityToken(request.token).burn(request.tokenAmount);
         
         emit RedemptionSettled(requestId, request.estimatedValue);
         
@@ -164,12 +167,11 @@ contract AsyncRedemptionController is AccessControl, ReentrancyGuard {
             "Cannot cancel"
         );
         
-        // Return tokens to investor
-        RWASecurityToken token = RWASecurityToken(request.token);
-        token.transfer(request.investor, request.tokenAmount);
-        
         request.status = RedemptionStatus.Cancelled;
         pendingRedemptions[request.token] -= request.tokenAmount;
+        
+        // Return tokens to investor
+        require(RWASecurityToken(request.token).transfer(request.investor, request.tokenAmount), "Return failed");
         
         emit RedemptionCancelled(requestId, reason);
     }

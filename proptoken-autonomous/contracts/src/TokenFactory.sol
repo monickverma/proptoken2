@@ -69,6 +69,10 @@ contract TokenFactory is AccessControl {
         token.grantRole(token.MINTER_ROLE(), msg.sender);
         token.grantRole(token.COMPLIANCE_ROLE(), msg.sender);
         
+        // The token constructor gave this factory admin + minter; drop them
+        token.renounceRole(token.MINTER_ROLE(), address(this));
+        token.renounceRole(token.DEFAULT_ADMIN_ROLE(), address(this));
+        
         emit TokenDeployed(fingerprint, address(token), name, symbol, block.timestamp);
         
         return address(token);
