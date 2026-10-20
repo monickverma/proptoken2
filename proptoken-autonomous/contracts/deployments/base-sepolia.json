@@ -1,0 +1,43 @@
+{
+  "assetRegistry": "0x97f6Fe807e72BB21E5D37a67E6fA6901d8040Ca1",
+  "assets": {
+    "ASSET-GGM-001": {
+      "name": "DLF Cyber Hub",
+      "priceUsd": 50,
+      "symbol": "PT-DLFCH",
+      "token": "0xEd60Ba578F28BF8DBb161d8d44DbdC91Bcb6D972"
+    },
+    "ASSET-GGM-002": {
+      "name": "One Horizon Center",
+      "priceUsd": 120,
+      "symbol": "PT-OHC",
+      "token": "0x12435B6205905d0DdfaeE52c64842d10751B46FA"
+    },
+    "ASSET-GGM-003": {
+      "name": "Ambience Mall Complex",
+      "priceUsd": 25,
+      "symbol": "PT-AMC",
+      "token": "0x38591E78E71A6B5df5B2eaf15d6eAeC6129A9842"
+    },
+    "ASSET-GGM-004": {
+      "name": "Worldmark Gurugram",
+      "priceUsd": 45,
+      "symbol": "PT-WMG",
+      "token": "0x2BF4CdF0d37a2Ea7Eb536f2587D00aBFa554792C"
+    },
+    "ASSET-GGM-005": {
+      "name": "Candor TechSpace",
+      "priceUsd": 35,
+      "symbol": "PT-CTS",
+      "token": "0xF0c46D3Ed352a22e5B03cb8f78C23f8eC59547AC"
+    }
+  },
+  "asyncRedemptionController": "0x18c34E6955D251480C81c8fB927657bFa413F8cf",
+  "chainId": 84532,
+  "deployedAtBlock": 48360415,
+  "deployer": "0xbDC456D77C0cA30760122ff3A7c66583E51f70Cd",
+  "market": "0xF11F58F6AFEd12c7CecD5453A2a3bE50d3303158",
+  "oracleAttestationVerifier": "0x9d1e369579e52f2BcBd3f17E7B03794415B7c796",
+  "testUsd": "0x6e3Ff450b299a4dDb51A65552AbBBe7877Fe31fd",
+  "tokenFactory": "0x39Acaa83c399d14F2A7F01AbA81AeaB60b9913F1"
+}

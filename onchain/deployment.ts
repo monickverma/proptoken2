@@ -76,4 +76,4 @@ export const EXPLORER_URL = 'https://sepolia.basescan.org';
 export const txUrl = (hash: string) => `${EXPLORER_URL}/tx/${hash}`;
 export const addressUrl = (address: string) => `${EXPLORER_URL}/address/${address}`;
 
-export const ETH_FAUCET_URL = 'https://docs.base.org/base-chain/tools/network-faucets';
+export const ETH_FAUCET_URL = 'https://portal.cdp.coinbase.com/products/faucet';

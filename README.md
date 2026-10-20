@@ -84,6 +84,22 @@ All in `proptoken-autonomous/contracts/src`, using OpenZeppelin `AccessControl` 
 
 **Testnet market (current).** `script/DeployTestnetMarket.s.sol` deploys the `src/` contracts to Base Sepolia (chain ID 84532): registry, verifier, factory, redemption controller, TestUSD and the market, plus one token per demo asset with a funded buyback reserve. It writes every address to [`deployments/base-sepolia.json`](proptoken-autonomous/contracts/deployments/base-sepolia.json), which the web app reads.
 
+Deployed October 2026 (from block 48360415):
+
+| Contract | Address |
+|---|---|
+| PropTokenMarket | [`0xF11F58F6AFEd12c7CecD5453A2a3bE50d3303158`](https://sepolia.basescan.org/address/0xF11F58F6AFEd12c7CecD5453A2a3bE50d3303158) |
+| TestUSD (tUSD) | [`0x6e3Ff450b299a4dDb51A65552AbBBe7877Fe31fd`](https://sepolia.basescan.org/address/0x6e3Ff450b299a4dDb51A65552AbBBe7877Fe31fd) |
+| AssetRegistry | [`0x97f6Fe807e72BB21E5D37a67E6fA6901d8040Ca1`](https://sepolia.basescan.org/address/0x97f6Fe807e72BB21E5D37a67E6fA6901d8040Ca1) |
+| TokenFactory | [`0x39Acaa83c399d14F2A7F01AbA81AeaB60b9913F1`](https://sepolia.basescan.org/address/0x39Acaa83c399d14F2A7F01AbA81AeaB60b9913F1) |
+| AsyncRedemptionController | [`0x18c34E6955D251480C81c8fB927657bFa413F8cf`](https://sepolia.basescan.org/address/0x18c34E6955D251480C81c8fB927657bFa413F8cf) |
+| OracleAttestationVerifier | [`0x9d1e369579e52f2BcBd3f17E7B03794415B7c796`](https://sepolia.basescan.org/address/0x9d1e369579e52f2BcBd3f17E7B03794415B7c796) |
+| DLF Cyber Hub (PT-DLFCH, 50 tUSD) | [`0xEd60Ba578F28BF8DBb161d8d44DbdC91Bcb6D972`](https://sepolia.basescan.org/address/0xEd60Ba578F28BF8DBb161d8d44DbdC91Bcb6D972) |
+| One Horizon Center (PT-OHC, 120 tUSD) | [`0x12435B6205905d0DdfaeE52c64842d10751B46FA`](https://sepolia.basescan.org/address/0x12435B6205905d0DdfaeE52c64842d10751B46FA) |
+| Ambience Mall Complex (PT-AMC, 25 tUSD) | [`0x38591E78E71A6B5df5B2eaf15d6eAeC6129A9842`](https://sepolia.basescan.org/address/0x38591E78E71A6B5df5B2eaf15d6eAeC6129A9842) |
+| Worldmark Gurugram (PT-WMG, 45 tUSD) | [`0x2BF4CdF0d37a2Ea7Eb536f2587D00aBFa554792C`](https://sepolia.basescan.org/address/0x2BF4CdF0d37a2Ea7Eb536f2587D00aBFa554792C) |
+| Candor TechSpace (PT-CTS, 35 tUSD) | [`0xF0c46D3Ed352a22e5B03cb8f78C23f8eC59547AC`](https://sepolia.basescan.org/address/0xF0c46D3Ed352a22e5B03cb8f78C23f8eC59547AC) |
+
 **Legacy (January 2026).** Deployed with Hardhat from `contracts/contracts/`; no longer used by the app:
 
 | Contract | Address |
@@ -96,7 +112,7 @@ The deployed bytecode matches the Hardhat sources in `contracts/contracts/` (che
 ### Trying the testnet market
 
 1. Open https://proptoken2.vercel.app, sign in (demo account), and connect a wallet such as MetaMask. The app asks to switch it to Base Sepolia.
-2. Get a little Base Sepolia ETH for gas from a [faucet](https://docs.base.org/base-chain/tools/network-faucets).
+2. Get a little Base Sepolia ETH for gas from a faucet such as [Coinbase's](https://portal.cdp.coinbase.com/products/faucet), or mine Sepolia ETH at [sepolia-faucet.pk910.de](https://sepolia-faucet.pk910.de) and bridge it with [Superbridge](https://testnets.superbridge.app).
 3. On **Fractional**, press **Get 10,000 test USD**, pick an asset and **Buy**: one approval, then the purchase.
 4. On **Swap**, **Sell** tokens back for tUSD: one approval, then the sale.
 
