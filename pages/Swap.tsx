@@ -3,9 +3,14 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { DUMMY_ASSETS } from '../constants';
 import { RefreshCcw, ArrowDown, Wallet, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useAccount } from 'wagmi';
+import { OnchainTradePanel } from '../components/OnchainTradePanel';
+import { ONCHAIN_ENABLED } from '../onchain/deployment';
 
 const Swap: React.FC = () => {
   const { wallet, swapToStablecoin } = useAuth();
+  const { isConnected } = useAccount();
+  const onchain = ONCHAIN_ENABLED && isConnected;
   const [assetId, setAssetId] = useState(DUMMY_ASSETS[0].id);
   const [tokenAmount, setTokenAmount] = useState<number>(0);
   const [isSwapping, setIsSwapping] = useState(false);
@@ -41,6 +46,26 @@ const Swap: React.FC = () => {
       <div className="text-center">
         <h1 className="text-5xl font-black text-slate-900 dark:text-slate-100 tracking-tighter">Liquid Swap</h1>
         <p className="text-slate-400 font-bold uppercase text-xs tracking-widest mt-2">Instant Unit Conversion</p>
+      </div>
+
+      {onchain ? (
+        <div className="space-y-4">
+          <select
+            className="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg px-4 py-3 font-black text-slate-900 dark:text-slate-100 focus:border-indigo-600 outline-none uppercase text-xs tracking-widest"
+            value={assetId}
+            onChange={e => setAssetId(e.target.value)}
+          >
+            {DUMMY_ASSETS.map(asset => (
+              <option key={asset.id} value={asset.id}>{asset.name}</option>
+            ))}
+          </select>
+          <OnchainTradePanel assetId={assetId} mode="sell" />
+        </div>
+      ) : (
+      <>
+      <div className="p-4 bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-300 rounded-xl text-xs font-bold">
+        Simulated: this swap only changes the demo wallet stored in your browser.
+        {ONCHAIN_ENABLED && ' Connect a wallet to sell tokens for real on Base Sepolia testnet.'}
       </div>
 
       <div className="bg-white dark:bg-slate-900 p-10 rounded-2xl border-2 border-slate-100 dark:border-slate-800 relative transition-colors">
@@ -119,7 +144,7 @@ const Swap: React.FC = () => {
             disabled={isSwapping || tokenAmount <= 0}
             className="w-full bg-slate-900 dark:bg-slate-800 text-white py-6 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50 btn-flat"
           >
-            {isSwapping ? <Loader2 className="w-6 h-6 animate-spin" /> : "Confirm Swap"}
+            {isSwapping ? <Loader2 className="w-6 h-6 animate-spin" /> : "Simulate Swap"}
           </button>
         </div>
 
@@ -129,7 +154,7 @@ const Swap: React.FC = () => {
                <CheckCircle2 className="w-12 h-12" />
             </div>
             <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 tracking-tighter uppercase">Success</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-bold mt-4 leading-relaxed">Plot units have been liquidated into your INR settlement wallet.</p>
+            <p className="text-slate-500 dark:text-slate-400 font-bold mt-4 leading-relaxed">Simulated: plot units were converted in your demo wallet. No blockchain transaction was sent.</p>
             <button 
               onClick={() => setShowSuccess(false)}
               className="mt-10 bg-indigo-600 text-white px-10 py-4 rounded-lg font-black uppercase tracking-widest text-sm btn-flat"
@@ -139,6 +164,8 @@ const Swap: React.FC = () => {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 };

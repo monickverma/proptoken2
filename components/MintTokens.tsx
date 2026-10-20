@@ -10,10 +10,9 @@ interface MintTokensProps {
 }
 
 export const MintTokens: React.FC<MintTokensProps> = ({ assetId, pricePerToken, availableTokens, onSuccess }) => {
-    const { wallet, updateBalance } = useAuth();
+    const { wallet } = useAuth();
     const [amount, setAmount] = useState<number>(1);
     const [status, setStatus] = useState<'IDLE' | 'MINTING' | 'SUCCESS' | 'ERROR'>('IDLE');
-    const [txHash, setTxHash] = useState<string>('');
 
     const totalCost = amount * pricePerToken;
     const canAfford = true; // wallet.balance >= totalCost; // Mock: always afford for demo
@@ -23,19 +22,9 @@ export const MintTokens: React.FC<MintTokensProps> = ({ assetId, pricePerToken, 
 
         setStatus('MINTING');
 
-        // Simulate network delay
+        // Simulated purchase: nothing is sent to a blockchain
         setTimeout(() => {
-            // Mock Transaction
-            const mockHash = `0x${Math.random().toString(36).substring(2, 10)}${Math.random().toString(36).substring(2, 10)}...`;
-            setTxHash(mockHash);
             setStatus('SUCCESS');
-
-            // Update local wallet mock state
-            if (updateBalance) {
-                // In a real app this would be event driven
-                // updateBalance(totalCost); 
-            }
-
             if (onSuccess) onSuccess();
         }, 2500);
     };
@@ -46,13 +35,13 @@ export const MintTokens: React.FC<MintTokensProps> = ({ assetId, pricePerToken, 
                 <div className="flex justify-center mb-2">
                     <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-300">Minting Successful!</h3>
-                <p className="text-xs text-slate-500 mt-1 font-mono">TX: {txHash}</p>
+                <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-300">Simulated purchase recorded</h3>
+                <p className="text-xs text-slate-500 mt-1">No blockchain transaction was sent.</p>
                 <button
                     onClick={() => setStatus('IDLE')}
                     className="mt-3 text-xs font-bold text-indigo-600 hover:text-indigo-700 underline"
                 >
-                    Buy More
+                    Simulate another
                 </button>
             </div>
         );
@@ -61,7 +50,7 @@ export const MintTokens: React.FC<MintTokensProps> = ({ assetId, pricePerToken, 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 space-y-4">
             <div className="flex justify-between items-center">
-                <h3 className="font-bold text-slate-900 dark:text-slate-100">Mint Tokens</h3>
+                <h3 className="font-bold text-slate-900 dark:text-slate-100">Simulated purchase</h3>
                 <span className="text-xs font-mono text-slate-400">Bal: ₹{(wallet?.stablecoinBalance ?? 0).toLocaleString()}</span>
             </div>
 
@@ -96,10 +85,10 @@ export const MintTokens: React.FC<MintTokensProps> = ({ assetId, pricePerToken, 
                 {status === 'MINTING' ? (
                     <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Minting on Chain...
+                        Simulating...
                     </>
                 ) : (
-                    `Mint ${amount} Tokens`
+                    `Simulate buying ${amount} tokens`
                 )}
             </button>
 
